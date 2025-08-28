@@ -137,7 +137,7 @@ class DepthFirstPrinter:
                 except NotADirectoryError:
                     # Treat the current path as a file
                     file_entry = Entry(path=current, name=current.name, kind=NodeKind.FILE)
-                    self._handle_file(file_entry, writer)
+                    self._handle_file(file_entry, writer, base=root)
                     continue
                 except FileNotFoundError:
                     # Skip missing paths
@@ -153,7 +153,7 @@ class DepthFirstPrinter:
                         stack.append(entry.path)
 
                 for entry in files:
-                    self._handle_file(entry, writer)
+                    self._handle_file(entry, writer, base=root)
 
     def _excluded(self, entry: Entry) -> bool:
         # The reference implementation accepts strings/paths/globs/callables
@@ -173,7 +173,7 @@ class DepthFirstPrinter:
                     return True
         return False
 
-    def _handle_file(self, entry: Entry, writer: Writer) -> None:
+    def _handle_file(self, entry: Entry, writer: Writer, *, base: PurePosixPath) -> None:
         if self._excluded(entry):
             return
         if not self._extension_match(entry.name):
@@ -182,7 +182,7 @@ class DepthFirstPrinter:
         if not self.include_empty and self.source.is_empty(entry.path):
             return
 
-        path_str = str(entry.path)
+        path_str = self._display_path(entry.path, base)
         if self.only_headers:
             writer.write(self.formatter.header(path_str))
             return
@@ -193,4 +193,15 @@ class DepthFirstPrinter:
             writer.write(self.formatter.body(path_str, text))
         else:
             writer.write(self.formatter.binary(path_str))
+
+    def _display_path(self, path: PurePosixPath, base: PurePosixPath) -> str:
+        # If path is under base, return a relative POSIX path; otherwise absolute
+        try:
+            import os
+
+            rel = os.path.relpath(str(path), start=str(base))
+            # Make sure we use POSIX separators in output
+            return rel.replace("\\", "/")
+        except Exception:
+            return str(path)
 
