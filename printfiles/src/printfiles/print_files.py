@@ -648,30 +648,21 @@ def main():
         print("Operation cancelled.", file=sys.stderr)
         return
 
-    for path_str in args.paths:
-        path = Path(path_str).resolve()
+    # Switch to shared engine to honor the same traversal/printing semantics
+    from .adapters.filesystem import FileSystemSource
+    from .core import DepthFirstPrinter, StdoutWriter
+    from .formatters import MarkdownFormatter, XmlFormatter
 
-        if path.is_file():
-            print_single_file(
-                path,
-                relative_to=Path.cwd(),
-                only_headers=args.only_headers,
-                tag=args.tag,
-            )
-        elif path.is_dir():
-            print_files_contents(
-                path,
-                extensions=extensions,
-                exclude=exclusions,
-                only_headers=args.only_headers,
-                include_empty=args.include_empty,
-                tag=args.tag,
-            )
-        else:
-            print(
-                f"Error: Path is neither a file nor a directory: {path}",
-                file=sys.stderr,
-            )
+    formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()
+    printer = DepthFirstPrinter(
+        FileSystemSource(),
+        formatter,
+        include_empty=args.include_empty,
+        only_headers=args.only_headers,
+        extensions=extensions,
+        exclude=exclusions,
+    )
+    printer.run(args.paths, StdoutWriter())
 
 
 if __name__ == "__main__":
