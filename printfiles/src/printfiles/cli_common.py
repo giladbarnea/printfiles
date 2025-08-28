@@ -67,7 +67,6 @@ def parse_common_args(argv: list[str] | None = None) -> Tuple[argparse.ArgumentP
     )
     parser.add_argument("--no-exclude", action="store_true", help="Disable all exclusions (overrides --exclude).")
     parser.add_argument("-I", "--no-ignore", action="store_true", help="Disable gitignore file processing.")
-    parser.add_argument("-y", "--yes", action="store_true", help="Do not prompt for confirmation; assume yes.")
     parser.add_argument("--tag", type=str, choices=["xml", "md"], default="xml", help="Output format tag: 'xml' or 'md'.")
 
     args = parser.parse_args(argv)
