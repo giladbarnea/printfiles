@@ -81,3 +81,35 @@ def test_cli_engine_happy_path(tmp_path):
     assert "package-lock.json" not in out
     assert "__pycache__/module.pyc" not in out
     assert "tests/test_something.py" not in out
+
+
+def test_cli_engine_isolation(tmp_path):
+    (tmp_path / "dir" / "sub").mkdir(parents=True)
+    _write(tmp_path / "dir" / "a.py", "print('a')\nprint('b')\n")
+    _write(tmp_path / "dir" / "sub" / "b.md", "# b\n\ntext\n")
+    _touch(tmp_path / "__pycache__" / "c.pyc")
+
+    # Bypass parser-derived filters; hardcode simple includes/excludes
+    src = FileSystemSource(root_cwd=tmp_path)
+    printer = DepthFirstPrinter(
+        src,
+        XmlFormatter(),
+        include_empty=False,
+        only_headers=False,
+        extensions=[".py", ".md"],
+        exclude=[],
+    )
+    class _Buf:
+        def __init__(self) -> None:
+            self.parts: list[str] = []
+        def write(self, s: str) -> None:
+            self.parts.append(s)
+        def text(self) -> str:
+            return "".join(self.parts)
+    buf = _Buf()
+    # Explicitly pass the tmp_path root to run
+    printer.run([str(tmp_path)], buf)
+    out = buf.text()
+    assert "<dir/a.py>" in out
+    assert "<dir/sub/b.md>" in out
+    assert "__pycache__/c.pyc" not in out
