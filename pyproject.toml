@@ -1,5 +1,5 @@
 [project]
-name = "printfiles"
+name = "prin"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-prin = "printfiles.prin:main"
+prin = "prin.prin:main"
 
 [build-system]
 requires = ["uv_build>=0.8.13,<0.9.0"]

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # Keep a sane default on direct execution for smoke testing
     # If no argument provided, exit with usage guidance
     if len(sys.argv) < 2:
-        sys.stderr.write("Usage: python -m printfiles.print_repo <github_repo_url> [options]\n")
+        sys.stderr.write("Usage: python -m prin.print_repo <github_repo_url> [options]\n")
         sys.exit(2)
     main(sys.argv[1])
 

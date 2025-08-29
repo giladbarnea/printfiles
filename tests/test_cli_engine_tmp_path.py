@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from printfiles.adapters.filesystem import FileSystemSource
-from printfiles.cli_common import derive_filters_and_print_flags, parse_common_args
-from printfiles.core import DepthFirstPrinter
-from printfiles.formatters import XmlFormatter
+from prin.adapters.filesystem import FileSystemSource
+from prin.cli_common import derive_filters_and_print_flags, parse_common_args
+from prin.core import DepthFirstPrinter
+from prin.formatters import XmlFormatter
 
 
 def _write(p: Path, content: str) -> None:

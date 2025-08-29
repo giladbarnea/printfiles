@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 import pytest
 
-from printfiles.core import DepthFirstPrinter
-from printfiles.formatters import XmlFormatter
-from printfiles.adapters.github import GitHubRepoSource
+from prin.core import DepthFirstPrinter
+from prin.formatters import XmlFormatter
+from prin.adapters.github import GitHubRepoSource
 
 
 def _run_repo(url: str, subpaths: list[str]) -> str:
