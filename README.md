@@ -1,4 +1,4 @@
-### printfiles
+### prin
 
 Engine-driven depth-first traversal with source adapters; the engine is source-agnostic while implementations (filesystem, GitHub) provide listing/reading. Shared filters/formatters ensure identical behavior across sources.
 
