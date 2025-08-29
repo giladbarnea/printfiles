@@ -17,11 +17,12 @@ def main(url: str | None = None) -> None:
         if not args.paths:
             parser.error("A GitHub repository URL must be provided as the first positional argument")
         url = args.paths[0]
-        # After taking the URL, traverse from repo root
-        args.paths = [""]
+        # After taking the URL, traverse from provided subpaths (relative to repo root),
+        # default to repo root if none specified.
+        args.paths = args.paths[1:] or [""]
     else:
-        # URL was provided directly; ensure we traverse from repo root by default
-        args.paths = [""]
+        # URL was provided directly; keep any provided subpaths, or default to repo root
+        args.paths = args.paths or [""]
 
     # Do not honor local .gitignore since we are traversing a remote repo
     args.no_ignore = True

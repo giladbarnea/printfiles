@@ -97,9 +97,13 @@ class GitHubRepoSource(SourceAdapter):
         owner, repo, ref = self._ctx.owner, self._ctx.repo, self._ctx.ref
         url = f"{API_BASE}/repos/{owner}/{repo}/contents/{path}" if path else f"{API_BASE}/repos/{owner}/{repo}/contents"
         r = _get(self._session, url, params={"ref": ref})
-        items: List[Dict] = r.json()
+        items = r.json()
+        # If the requested path is a file, emulate filesystem semantics and
+        # raise NotADirectoryError so the engine treats it as an explicit file
+        # root (force-include) rather than listing its contents.
         if isinstance(items, dict) and items.get("type") == "file":
-            items = [items]
+            raise NotADirectoryError(path or ".")
+        assert isinstance(items, list)
         entries: list[Entry] = []
         for it in items:
             it_type = it.get("type")
