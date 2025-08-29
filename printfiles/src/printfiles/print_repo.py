@@ -19,6 +19,9 @@ def main(url: str | None = None) -> None:
         url = args.paths[0]
         # After taking the URL, traverse from repo root
         args.paths = [""]
+    else:
+        # URL was provided directly; ensure we traverse from repo root by default
+        args.paths = [""]
 
     # Do not honor local .gitignore since we are traversing a remote repo
     args.no_ignore = True
