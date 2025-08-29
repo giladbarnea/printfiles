@@ -116,6 +116,7 @@ class DepthFirstPrinter:
         self.only_headers = only_headers
         self.extensions = extensions
         self.exclude = exclude
+        self._printed_paths: set[str] = set()
 
         # Import filtering primitives from the reference implementation
         # to preserve semantics exactly.
@@ -137,7 +138,7 @@ class DepthFirstPrinter:
                 except NotADirectoryError:
                     # Treat the current path as a file
                     file_entry = Entry(path=current, name=current.name, kind=NodeKind.FILE)
-                    self._handle_file(file_entry, writer, base=root)
+                    self._handle_file(file_entry, writer, base=root, force=True)
                     continue
                 except FileNotFoundError:
                     # Skip missing paths
@@ -173,18 +174,24 @@ class DepthFirstPrinter:
                     return True
         return False
 
-    def _handle_file(self, entry: Entry, writer: Writer, *, base: PurePosixPath) -> None:
-        if self._excluded(entry):
-            return
-        if not self._extension_match(entry.name):
+    def _handle_file(self, entry: Entry, writer: Writer, *, base: PurePosixPath, force: bool = False) -> None:
+        # Avoid duplicate prints when a file is both an explicit root and encountered during traversal
+        key = str(entry.path)
+        if key in self._printed_paths:
             return
 
-        if not self.include_empty and self.source.is_empty(entry.path):
-            return
+        if not force:
+            if self._excluded(entry):
+                return
+            if not self._extension_match(entry.name):
+                return
+            if not self.include_empty and self.source.is_empty(entry.path):
+                return
 
         path_str = self._display_path(entry.path, base)
         if self.only_headers:
             writer.write(self.formatter.header(path_str))
+            self._printed_paths.add(key)
             return
 
         blob = self.source.read_file_bytes(entry.path)
@@ -193,6 +200,7 @@ class DepthFirstPrinter:
             writer.write(self.formatter.body(path_str, text))
         else:
             writer.write(self.formatter.binary(path_str))
+        self._printed_paths.add(key)
 
     def _display_path(self, path: PurePosixPath, base: PurePosixPath) -> str:
         # If path is under base, return a relative POSIX path; otherwise absolute
@@ -200,6 +208,8 @@ class DepthFirstPrinter:
             import os
 
             rel = os.path.relpath(str(path), start=str(base))
+            if rel == "." or rel == "":
+                return path.name
             # Make sure we use POSIX separators in output
             return rel.replace("\\", "/")
         except Exception:
