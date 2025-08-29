@@ -589,12 +589,6 @@ def main():
     )
     
     parser.add_argument(
-        "-y",
-        "--yes",
-        action="store_true",
-        help="Do not prompt for confirmation. By default, the program will prompt for confirmation only if stdin and stdout are both a TTY.",
-    )
-    parser.add_argument(
         "--tag",
         type=str,
         choices=["xml", "md"],
@@ -615,38 +609,6 @@ def main():
         no_ignore=args.no_ignore,
         paths=args.paths,
     )
-
-    if (
-        not args.yes
-        # We are not piped into
-        and sys.stdin.isatty()
-        # We are not piping to
-        and sys.stdout.isatty()
-    ):
-        # Display execution settings
-        print("\nProgram will execute with the following settings:")
-        print("-" * 50)
-        print(f"Paths                  {', '.join(args.paths)}")
-        print(f"File extensions        {', '.join(extensions) if extensions else 'None specified'}")
-        print(
-            f"Exclusions             {', '.join(map(_describe_predicate, exclusions)) if exclusions else 'None'}"
-        )
-        print(f"Only print headers     {args.only_headers}")
-        print(f"Include empty files    {args.include_empty}")
-        print(f"Include docs files     {not args.no_docs}")
-        print(f"Include test files     {args.include_tests}")
-        print(f"Include lock files     {args.include_lock}")
-        print(f"Include binary files   {args.include_binary}")
-        print(f"Process gitignore      {not args.no_ignore}")
-        print(f"Output tag format      {args.tag}")
-        print("-" * 50)
-
-        response = input("\nDo you want to continue? [Y/n]: ").lower().strip()
-    else:
-        response = "y"
-    if response and response != "y":
-        print("Operation cancelled.", file=sys.stderr)
-        return
 
     # Switch to shared engine to honor the same traversal/printing semantics
     from .adapters.filesystem import FileSystemSource
