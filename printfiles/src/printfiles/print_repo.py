@@ -20,6 +20,8 @@ def main(url: str | None = None) -> None:
         # After taking the URL, traverse from repo root
         args.paths = [""]
 
+    # Do not honor local .gitignore since we are traversing a remote repo
+    args.no_ignore = True
     extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
 
     formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()
