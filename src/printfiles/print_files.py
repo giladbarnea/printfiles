@@ -667,3 +667,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def matches(argv: list[str]) -> bool:
+    # Filesystem mode is the default fallback; always True.
+    return True

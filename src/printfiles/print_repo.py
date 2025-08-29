@@ -50,3 +50,14 @@ if __name__ == "__main__":
         sys.stderr.write("Usage: python -m printfiles.print_repo <github_repo_url> [options]\n")
         sys.exit(2)
     main(sys.argv[1])
+
+
+def matches(argv: list[str]) -> bool:
+    if not argv:
+        return False
+    first = argv[0].strip().lower()
+    return (
+        first.startswith("https://github.com/")
+        or first.startswith("http://github.com/")
+        or first.startswith("git+https://github.com/")
+    )
