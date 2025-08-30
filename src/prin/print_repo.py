@@ -2,12 +2,48 @@
 from __future__ import annotations
 
 import sys
+from urllib.parse import urlparse
 from typing import Callable
 
 from .adapters.github import GitHubRepoSource
 from .cli_common import derive_filters_and_print_flags, parse_common_args
 from .core import DepthFirstPrinter, StdoutWriter
 from .formatters import MarkdownFormatter, XmlFormatter
+
+
+def _extract_in_repo_subpath(url: str) -> str:
+    """Return the path inside the repo from a GitHub URL.
+
+    Examples we accept (all equivalent w.r.t. subpath extraction):
+    - https://github.com/<owner>/<repo>/blob/<branch>/dir/file
+    - https://github.com/<owner>/<repo>/<branch>/dir/file
+    - https://github.com/<owner>/<repo>/blob/dir/file
+    - https://github.com/<owner>/<repo>/dir/file
+
+    Rules:
+    - Strip an initial 'blob/' segment if present.
+    - Strip an initial 'main/' or 'master/' segment if present (whether or not 'blob/' preceded it).
+    - Everything after these optional segments is treated as the subpath (may be empty for repo root).
+    """
+    parsed = urlparse(url)
+    # parsed.path: "/<owner>/<repo>[/...]"
+    raw_path = (parsed.path or "").strip("/")
+    if not raw_path:
+        return ""
+    segments = raw_path.split("/")
+    # Require owner/repo at minimum
+    if len(segments) < 2:
+        return ""
+    rest = segments[2:]
+    if not rest:
+        return ""
+    # Remove optional 'blob' segment
+    if rest and rest[0] == "blob":
+        rest = rest[1:]
+    # Remove optional default branch markers
+    if rest and rest[0] in {"main", "master"}:
+        rest = rest[1:]
+    return "/".join(rest)
 
 
 def main(url: str | None = None) -> None:
@@ -17,12 +53,25 @@ def main(url: str | None = None) -> None:
         if not args.paths:
             parser.error("A GitHub repository URL must be provided as the first positional argument")
         url = args.paths[0]
-        # After taking the URL, traverse from provided subpaths (relative to repo root),
-        # default to repo root if none specified.
-        args.paths = args.paths[1:] or [""]
+        # Derive the initial root from the URL itself, supporting optional blob/ and main|master/ segments
+        derived_root = _extract_in_repo_subpath(url).strip("/")
+        extra_roots = args.paths[1:]
+        paths: list[str] = []
+        if derived_root:
+            paths.append(derived_root)
+        paths.extend(extra_roots)
+        if not paths:
+            paths = [""]
+        args.paths = paths
     else:
-        # URL was provided directly; keep any provided subpaths, or default to repo root
-        args.paths = args.paths or [""]
+        # URL was provided directly; use any provided subpaths, or derive from URL, or default to repo root
+        derived_root = _extract_in_repo_subpath(url).strip("/")
+        if args.paths:
+            pass  # honor provided paths as-is
+        elif derived_root:
+            args.paths = [derived_root]
+        else:
+            args.paths = [""]
 
     # Do not honor local .gitignore since we are traversing a remote repo
     args.no_ignore = True
