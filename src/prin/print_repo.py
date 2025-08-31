@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import sys
 from urllib.parse import urlparse
-from typing import Callable
 
 from .adapters.github import GitHubRepoSource
 from .cli_common import derive_filters_and_print_flags, parse_common_args
@@ -51,7 +50,9 @@ def main(url: str | None = None) -> None:
     # Special-case: first positional may be a GitHub URL; otherwise, require --repo
     if url is None:
         if not args.paths:
-            parser.error("A GitHub repository URL must be provided as the first positional argument")
+            parser.error(
+                "A GitHub repository URL must be provided as the first positional argument"
+            )
         url = args.paths[0]
         # Derive the initial root from the URL itself, supporting optional blob/ and main|master/ segments
         derived_root = _extract_in_repo_subpath(url).strip("/")

@@ -126,8 +126,6 @@ class DepthFirstPrinter:
         self._pf_is_glob: Callable[[object], bool] = pf._is_glob  # type: ignore[attr-defined]
 
     def run(self, roots: list[str], writer: Writer) -> None:
-        from . import print_files as pf  # lazy import for safety
-
         for root_spec in roots or ["."]:
             root = self.source.resolve_root(root_spec)
             stack: list[PurePosixPath] = [root]
@@ -174,7 +172,9 @@ class DepthFirstPrinter:
                     return True
         return False
 
-    def _handle_file(self, entry: Entry, writer: Writer, *, base: PurePosixPath, force: bool = False) -> None:
+    def _handle_file(
+        self, entry: Entry, writer: Writer, *, base: PurePosixPath, force: bool = False
+    ) -> None:
         # Avoid duplicate prints when a file is both an explicit root and encountered during traversal
         key = str(entry.path)
         if key in self._printed_paths:
@@ -214,4 +214,3 @@ class DepthFirstPrinter:
             return rel.replace("\\", "/")
         except Exception:
             return str(path)
-

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from . import print_repo, print_files
+from . import print_files, print_repo
 
 
 def main() -> None:
@@ -20,5 +20,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

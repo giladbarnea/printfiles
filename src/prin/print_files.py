@@ -1,10 +1,8 @@
 #!/usr/bin/env python3.12
-import argparse
 import ast
 import inspect
 import os
 import sys
-import textwrap
 from collections.abc import Callable, Generator
 from fnmatch import fnmatch
 from pathlib import Path
@@ -15,8 +13,8 @@ try:
     from annotated_types import Predicate
     from typeguard import typechecked
 except ImportError:
-    Predicate = lambda func: func  # type: ignore # noqa: E731
-    typechecked = lambda func: func  # type: ignore # noqa: E731
+    Predicate = lambda func: func  # type: ignore
+    typechecked = lambda func: func  # type: ignore
 
 if sys.version_info[:2] >= (3, 13):
     from typing import TypeIs
@@ -104,7 +102,8 @@ def _describe_predicate(pred: TExclusion) -> str:
     if " in " in inspect.getsource(pred):
         contains = pred.__code__.co_consts[1]
         return f"paths containing {contains!r}"
-    raise ValueError(f"Unknown predicate: {pred}")
+    msg = f"Unknown predicate: {pred}"
+    raise ValueError(msg)
 
 
 @typechecked
@@ -156,12 +155,13 @@ def print_single_file(
         print(relative_path)
     else:
         if tag == "xml":
-            template = "\n<{relative_path}>\n{file_content}\n</{relative_path}>\n\n"
+            template = f"\n<{relative_path}>\n{file_content}\n</{relative_path}>\n\n"
         elif tag == "md":
             separator = "=" * (len(relative_path) + 8)
             template = f"\n# FILE: {{relative_path}}\n{separator}\n{{file_content}}\n\n---\n"
         else:
-            raise ValueError(f"Unsupported tag format: {tag}")
+            msg = f"Unsupported tag format: {tag}"
+            raise ValueError(msg)
 
         print(template.format(relative_path=relative_path, file_content=file_content))
 
@@ -329,7 +329,7 @@ def get_default_extensions() -> list[TExclusion]:
         ".yaml",
         ".yml",
         ".sh",
-        ".zsh"
+        ".zsh",
     ]
 
 
@@ -495,12 +495,12 @@ def resolve_extensions(
 
 def main():
     # Reuse shared CLI to avoid duplication
-    from .cli_common import parse_common_args, derive_filters_and_print_flags
     from .adapters.filesystem import FileSystemSource
+    from .cli_common import derive_filters_and_print_flags, parse_common_args
     from .core import DepthFirstPrinter, StdoutWriter
     from .formatters import MarkdownFormatter, XmlFormatter
 
-    parser, args = parse_common_args()
+    _parser, args = parse_common_args()
     extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
 
     formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()

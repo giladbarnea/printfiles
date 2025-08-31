@@ -21,8 +21,10 @@ def _run(src: FileSystemSource, roots: list[str]) -> str:
     class _Buf:
         def __init__(self) -> None:
             self.parts: list[str] = []
+
         def write(self, s: str) -> None:
             self.parts.append(s)
+
         def text(self) -> str:
             return "".join(self.parts)
 
@@ -51,7 +53,9 @@ def test_two_sibling_directories(tmp_path: Path):
     # dirA and dirB siblings, each with printable files
     _write(tmp_path / "dirA" / "a.py", "print('a')\n")
     _write(tmp_path / "dirB" / "b.md", "# b\n")
-    out = _run(FileSystemSource(root_cwd=tmp_path), [str(tmp_path / "dirA"), str(tmp_path / "dirB")])
+    out = _run(
+        FileSystemSource(root_cwd=tmp_path), [str(tmp_path / "dirA"), str(tmp_path / "dirB")]
+    )
     # Paths are relative to each provided root
     assert "<a.py>" in out
     assert "<b.md>" in out

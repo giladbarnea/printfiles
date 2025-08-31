@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import os
 import pytest
-
+from prin.adapters.github import GitHubRepoSource
 from prin.core import DepthFirstPrinter
 from prin.formatters import XmlFormatter
-from prin.adapters.github import GitHubRepoSource
 from prin.print_repo import _extract_in_repo_subpath
 
 
@@ -13,8 +11,10 @@ def _run_repo(url: str, subpaths: list[str] | None = None) -> str:
     class _Buf:
         def __init__(self) -> None:
             self.parts: list[str] = []
+
         def write(self, s: str) -> None:
             self.parts.append(s)
+
         def text(self) -> str:
             return "".join(self.parts)
 
@@ -65,5 +65,4 @@ def test_repo_dir_and_explicit_ignored_file():
     url = "https://github.com/TypingMind/awesome-typingmind/LICENSE"
     out = _run_repo(url, [""])  # default root + embedded explicit path
     assert "<README.md>" in out  # normal traversal still prints repo files
-    assert "<LICENSE>" in out    # explicit inclusion prints extensionless file
-
+    assert "<LICENSE>" in out  # explicit inclusion prints extensionless file

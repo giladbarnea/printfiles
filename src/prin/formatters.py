@@ -28,4 +28,3 @@ class MarkdownFormatter:
 
     def binary(self, path: str) -> str:
         return self.header(path)
-

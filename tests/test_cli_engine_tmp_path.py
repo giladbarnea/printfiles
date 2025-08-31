@@ -25,11 +25,11 @@ def test_cli_engine_happy_path(tmp_path):
     # Included-by-default extensions: pick a subset (py, md, json*)
     _write(tmp_path / "src" / "main.py", "print('hello')\nprint('world')\n")
     _write(tmp_path / "docs" / "readme.md", "# Title\n\nSome docs.\n")
-    _write(tmp_path / "src" / "config.json", "{\n  \"a\": 1,\n  \"b\": 2\n}\n")
+    _write(tmp_path / "src" / "config.json", '{\n  "a": 1,\n  "b": 2\n}\n')
 
     # Nested level
     _write(tmp_path / "src" / "pkg" / "module.py", "def f():\n    return 1\n\nprint(f())\n")
-    _write(tmp_path / "src" / "pkg" / "data.jsonl", "{\"x\":1}\n{\"x\":2}\n")
+    _write(tmp_path / "src" / "pkg" / "data.jsonl", '{"x":1}\n{"x":2}\n')
 
     # Default-ignored categories (lock/test/binary)
     _write(tmp_path / "poetry.lock", "dummy\n")
@@ -53,8 +53,10 @@ def test_cli_engine_happy_path(tmp_path):
     class _Buf:
         def __init__(self) -> None:
             self.parts: list[str] = []
+
         def write(self, s: str) -> None:
             self.parts.append(s)
+
         def text(self) -> str:
             return "".join(self.parts)
 
@@ -92,13 +94,17 @@ def test_cli_engine_isolation(tmp_path):
         extensions=[".py", ".md"],
         exclude=[],
     )
+
     class _Buf:
         def __init__(self) -> None:
             self.parts: list[str] = []
+
         def write(self, s: str) -> None:
             self.parts.append(s)
+
         def text(self) -> str:
             return "".join(self.parts)
+
     buf = _Buf()
     # Explicitly pass the tmp_path root to run
     printer.run([str(tmp_path)], buf)
@@ -109,7 +115,7 @@ def test_cli_engine_isolation(tmp_path):
 
 
 def test_derive_filters_defaults(tmp_path):
-    parser, args = parse_common_args([str(tmp_path)])
+    _parser, args = parse_common_args([str(tmp_path)])
     extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
     # Must include common defaults
     assert ".py" in extensions

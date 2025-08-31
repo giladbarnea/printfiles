@@ -5,12 +5,11 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import PurePosixPath
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, Optional
 
 import requests
 
 from ..core import Entry, NodeKind, SourceAdapter, _decode_text, _is_text_bytes
-
 
 API_BASE = "https://api.github.com"
 MAX_WAIT_SECONDS = 180
@@ -29,7 +28,8 @@ def _parse_owner_repo(url: str) -> tuple[str, str]:
 
     m = re.match(r"https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)", url.strip())
     if not m:
-        raise ValueError(f"Unrecognized GitHub URL: {url}")
+        msg = f"Unrecognized GitHub URL: {url}"
+        raise ValueError(msg)
     return m.group(1), m.group(2)
 
 
@@ -59,7 +59,8 @@ def _get(session: requests.Session, url: str, *, params=None, stream=False) -> r
             if wait is not None:
                 if wait > MAX_WAIT_SECONDS:
                     resp.close()
-                    raise RuntimeError(f"Rate limit wait {wait}s exceeds {MAX_WAIT_SECONDS}s")
+                    msg = f"Rate limit wait {wait}s exceeds {MAX_WAIT_SECONDS}s"
+                    raise RuntimeError(msg)
                 if attempt == 0:
                     time.sleep(wait)
                     continue
@@ -95,7 +96,11 @@ class GitHubRepoSource(SourceAdapter):
     def list_dir(self, dir_path: PurePosixPath) -> Iterable[Entry]:
         path = str(dir_path)
         owner, repo, ref = self._ctx.owner, self._ctx.repo, self._ctx.ref
-        url = f"{API_BASE}/repos/{owner}/{repo}/contents/{path}" if path else f"{API_BASE}/repos/{owner}/{repo}/contents"
+        url = (
+            f"{API_BASE}/repos/{owner}/{repo}/contents/{path}"
+            if path
+            else f"{API_BASE}/repos/{owner}/{repo}/contents"
+        )
         r = _get(self._session, url, params={"ref": ref})
         items = r.json()
         # If the requested path is a file, emulate filesystem semantics and
@@ -120,7 +125,11 @@ class GitHubRepoSource(SourceAdapter):
     def read_file_bytes(self, file_path: PurePosixPath) -> bytes:
         owner, repo, ref = self._ctx.owner, self._ctx.repo, self._ctx.ref
         # Try contents API first
-        r = _get(self._session, f"{API_BASE}/repos/{owner}/{repo}/contents/{str(file_path)}", params={"ref": ref})
+        r = _get(
+            self._session,
+            f"{API_BASE}/repos/{owner}/{repo}/contents/{str(file_path)}",
+            params={"ref": ref},
+        )
         info = r.json()
         if info.get("encoding") == "base64" and info.get("content"):
             try:
@@ -157,4 +166,3 @@ class GitHubRepoSource(SourceAdapter):
         return is_text_semantically_empty(text)
 
     # no __post_init__ needed; ref fetched during __init__
-

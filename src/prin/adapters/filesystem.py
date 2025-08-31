@@ -51,4 +51,3 @@ class FileSystemSource(SourceAdapter):
         from ..print_files import is_empty as fs_is_empty  # reuse reference logic
 
         return fs_is_empty(Path(str(file_path)))
-

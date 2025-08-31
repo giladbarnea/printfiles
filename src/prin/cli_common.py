@@ -8,7 +8,9 @@ from typing import Tuple
 # prevent circular imports. We'll import lazily inside functions.
 
 
-def parse_common_args(argv: list[str] | None = None) -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
+def parse_common_args(
+    argv: list[str] | None = None,
+) -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     # Lazy imports from the reference implementation
     from .print_files import (
         resolve_extensions,  # type: ignore
@@ -17,7 +19,7 @@ def parse_common_args(argv: list[str] | None = None) -> Tuple[argparse.ArgumentP
     epilog = textwrap.dedent(
         f"""
         DEFAULT MATCH CRITERIA
-        When -t,--type is unspecified, the following file extensions are matched: {', '.join(resolve_extensions(custom_extensions=[], no_docs=False))}.
+        When -t,--type is unspecified, the following file extensions are matched: {", ".join(resolve_extensions(custom_extensions=[], no_docs=False))}.
 
         NOTE ABOUT EXCLUSIONS
         Exclusions match rather eagerly, because each specified exclusion is handled like a substring match. For example, 'o/b' matches 'foo/bar/baz'.
@@ -42,13 +44,50 @@ def parse_common_args(argv: list[str] | None = None) -> Tuple[argparse.ArgumentP
     )
 
     # Uppercase short flags are boolean "include" flags.
-    parser.add_argument("-T", "--include-tests", action="store_true", help="Include `test` and `tests` directories and spec.ts files.")
-    parser.add_argument("-L", "--include-lock", action="store_true", help="Include lock files (e.g. package-lock.json, poetry.lock, Cargo.lock).")
-    parser.add_argument("-a", "--text", "--include-binary", "--binary", action="store_true", dest="include_binary", help="Include binary files (e.g. *.pyc, *.jpg, *.zip, *.pdf).")
-    parser.add_argument("-d", "--no-docs", action="store_true", help="Exclude `.md`, `.mdx` and `.rst` files. Has no effect if -t,--type is specified.")
-    parser.add_argument("-E", "--include-empty", action="store_true", help="Include empty files and files that only contain imports and __all__=... expressions.")
-    parser.add_argument("-l", "--only-headers", action="store_true", help="Print only the file paths.")
-    parser.add_argument("-t", "--type", type=str, default=[], action="append", help="Match only files with the given extensions or glob patterns. Can be specified multiple times.")
+    parser.add_argument(
+        "-T",
+        "--include-tests",
+        action="store_true",
+        help="Include `test` and `tests` directories and spec.ts files.",
+    )
+    parser.add_argument(
+        "-L",
+        "--include-lock",
+        action="store_true",
+        help="Include lock files (e.g. package-lock.json, poetry.lock, Cargo.lock).",
+    )
+    parser.add_argument(
+        "-a",
+        "--text",
+        "--include-binary",
+        "--binary",
+        action="store_true",
+        dest="include_binary",
+        help="Include binary files (e.g. *.pyc, *.jpg, *.zip, *.pdf).",
+    )
+    parser.add_argument(
+        "-d",
+        "--no-docs",
+        action="store_true",
+        help="Exclude `.md`, `.mdx` and `.rst` files. Has no effect if -t,--type is specified.",
+    )
+    parser.add_argument(
+        "-E",
+        "--include-empty",
+        action="store_true",
+        help="Include empty files and files that only contain imports and __all__=... expressions.",
+    )
+    parser.add_argument(
+        "-l", "--only-headers", action="store_true", help="Print only the file paths."
+    )
+    parser.add_argument(
+        "-t",
+        "--type",
+        type=str,
+        default=[],
+        action="append",
+        help="Match only files with the given extensions or glob patterns. Can be specified multiple times.",
+    )
     # Lazy import remaining helpers for help text
     from .print_files import (
         DEFAULT_EXCLUSIONS,  # type: ignore
@@ -65,9 +104,19 @@ def parse_common_args(argv: list[str] | None = None) -> Tuple[argparse.ArgumentP
         default=[],
         action="append",
     )
-    parser.add_argument("--no-exclude", action="store_true", help="Disable all exclusions (overrides --exclude).")
-    parser.add_argument("-I", "--no-ignore", action="store_true", help="Disable gitignore file processing.")
-    parser.add_argument("--tag", type=str, choices=["xml", "md"], default="xml", help="Output format tag: 'xml' or 'md'.")
+    parser.add_argument(
+        "--no-exclude", action="store_true", help="Disable all exclusions (overrides --exclude)."
+    )
+    parser.add_argument(
+        "-I", "--no-ignore", action="store_true", help="Disable gitignore file processing."
+    )
+    parser.add_argument(
+        "--tag",
+        type=str,
+        choices=["xml", "md"],
+        default="xml",
+        help="Output format tag: 'xml' or 'md'.",
+    )
 
     args = parser.parse_args(argv)
     return parser, args
@@ -75,7 +124,7 @@ def parse_common_args(argv: list[str] | None = None) -> Tuple[argparse.ArgumentP
 
 def derive_filters_and_print_flags(args) -> tuple[list[str], list, bool, bool]:
     # Lazy import to avoid cycles
-    from .print_files import resolve_extensions, resolve_exclusions  # type: ignore
+    from .print_files import resolve_exclusions, resolve_extensions  # type: ignore
 
     extensions = resolve_extensions(custom_extensions=args.type, no_docs=args.no_docs)
     exclusions = resolve_exclusions(
@@ -88,4 +137,3 @@ def derive_filters_and_print_flags(args) -> tuple[list[str], list, bool, bool]:
         paths=args.paths,
     )
     return extensions, exclusions, bool(args.include_empty), bool(args.only_headers)
-
