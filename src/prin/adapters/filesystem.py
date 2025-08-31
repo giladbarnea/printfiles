@@ -42,7 +42,7 @@ class FileSystemSource(SourceAdapter):
     def read_file_bytes(self, file_path: PurePosixPath) -> bytes:
         p = Path(str(file_path))
         try:
-            with open(p, "rb") as f:
+            with p.open("rb") as f:
                 return f.read()
         except Exception:
             return b""
