@@ -45,62 +45,62 @@ See `prin --help` for the full list of options.
 
 ## Options Roadmap (most of these are not implemented yet)
 
-- `-H`, `--hidden` (alias: --include-hidden)
+- `-H`, `--hidden` (alias: --include-hidden) — planned ⏳
 Include hidden files and directories in the search (dotfiles and dot-directories).
 
-- `-I`, `--no-ignore` (re-enable with `--ignore`)
+- `-I`, `--no-ignore` (re-enable with `--ignore`) — implemented ✅
 Disable all ignore rules (e.g., from .gitignore, .ignore, .fdignore, and global ignore files).
 
-- `--no-ignore-vcs` (alias: `--ignore-gitignore`; re-enable with `--ignore-vcs`)
+- `--no-ignore-vcs` (alias: `--ignore-gitignore`; re-enable with `--ignore-vcs`) — implemented ✅
 Do not respect Version Control System (VCS) ignore rules (such as .gitignore, .git/info/exclude, and global gitignore).
 
-- `--ignore-file <path>`
+- `--ignore-file <path>` — planned ⏳
 Add an additional ignore-file in .gitignore format (lower precedence than command-line excludes).
 
-- `-E`, `--exclude <glob or regex>` (repeatable; alias: `--ignore <glob>`)
+- `-E`, `--exclude <glob or regex>` (repeatable; alias: `--ignore <glob>`) — implemented ✅
 Exclude files or directories by shell-style glob or regex (identified automatically). Repeat to add multiple patterns (e.g., --exclude '*.log').
 
-- `-g`, `--glob`, `--force-glob`
+- `-g`, `--glob`, `--force-glob` — planned ⏳
 Force the interpretation of the search pattern as a glob (instead of a regular expression).
 Examples: prin -g '*.py', prin -g 'src/**/test_*.rs'.
 
-- `-e`, `--extension <ext>` (repeatable)
+- `-e`, `--extension <ext>` (repeatable) — implemented ✅
 Only include files with the given extension (e.g., -e rs -e toml).
 
-- `-S`, `--size <constraint>`
+- `-S`, `--size <constraint>` — planned ⏳
 Filter by file size. Format: <+|-><NUM><UNIT> (e.g., +10k, -2M, 500b). Units: b, k, m, g, t, ki, mi, gi, ti.
 
-- `-s`, `--case-sensitive`
+- `-s`, `--case-sensitive` — planned ⏳
 Force case-sensitive matching of the search pattern. By default, case sensitivity is "smart".
 
-- `-i`, `--ignore-case`
+- `-i`, `--ignore-case` — planned ⏳
 Force case-insensitive matching of the search pattern. By default, case sensitivity is "smart".
 
-- `-H`, `--hidden` (listed above for clarity)
+- `-H`, `--hidden` (listed above for clarity) — planned ⏳
 
-- `-u`, `--unrestricted`
+- `-u`, `--unrestricted` — planned ⏳
 Unrestricted search: include hidden files and disable ignore rules (equivalent to --hidden --no-ignore).
 
-- `-uu`
+- `-uu` — planned ⏳
 Equivalent to --no-ignore --hidden.
 
-- `-uuu`	
+- `-uuu` — planned ⏳
 Equivalent to --no-ignore --hidden --binary.
 
-- `-L`, `--follow`
+- `-L`, `--follow` — planned ⏳
 Follow symbolic links.
 
-- `-d`, `--max-depth <n>`
+- `-d`, `--max-depth <n>` — planned ⏳
 Limit directory traversal to at most <n> levels.
 
-- `-A`, `--absolute-paths`
+- `-A`, `--absolute-paths` — planned ⏳
 Print absolute paths (instead of paths relative to the current working directory).
 
-- `-a`, `--text`
+- `-a`, `--text` — planned ⏳
 Treat binary files as text (search and print them as-is).
 
-- `--binary`, `--include-binary`
+- `--binary`, `--include-binary` — implemented ✅
 Include binary files in the output (e.g., *.pyc, images, archives). Binary files are emitted as headers only in some formats.
 
-- `-n`, `--line-number` (alias: `--line-numbers`)
+- `-n`, `--line-number` (alias: `--line-numbers`) — planned ⏳
 Show line numbers in printed file contents.
