@@ -99,6 +99,22 @@ class StdoutWriter:
         sys.stdout.write(text)
 
 
+class StringWriter:
+    """Collects written text into an internal buffer for tests and callers.
+
+    Provides a lightweight Writer implementation that accumulates text and
+    exposes it via the `text()` accessor.
+    """
+    def __init__(self) -> None:
+        self._parts: list[str] = []
+
+    def write(self, text: str) -> None:  # Writer protocol
+        self._parts.append(text)
+
+    def text(self) -> str:
+        return "".join(self._parts)
+
+
 class DepthFirstPrinter:
     def __init__(
         self,

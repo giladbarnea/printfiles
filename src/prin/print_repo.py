@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from .adapters.github import GitHubRepoSource
 from .cli_common import derive_filters_and_print_flags, parse_common_args
-from .core import DepthFirstPrinter, StdoutWriter
+from .core import DepthFirstPrinter, StdoutWriter, StringWriter
 from .formatters import MarkdownFormatter, XmlFormatter
 
 
@@ -91,6 +91,75 @@ def main(url: str | None = None) -> None:
 
     writer = StdoutWriter()
     printer.run(args.paths, writer)
+
+
+def render_repo(
+    url: str,
+    subpaths: list[str] | None = None,
+    *,
+    tag: str = "xml",
+    include_empty: bool | None = None,
+    only_headers: bool | None = None,
+    extensions: list[str] | None = None,
+    exclude: list | None = None,
+) -> str:
+    """Render a GitHub repo (optionally a subpath) to a single string.
+
+    Mirrors CLI defaults and semantics used by `main()`, but returns the
+    full output as a string so tests can import and assert without custom
+    buffer helpers or stdout capture.
+    - URL may embed an in-repo path (supports optional blob/ and main|master/).
+    - `subpaths` can add additional roots (relative to repo root).
+    - Ignores local gitignore files by design (remote repo traversal).
+    """
+    # Derive roots like the CLI does
+    derived = _extract_in_repo_subpath(url).strip("/")
+    roots: list[str] = []
+    if derived:
+        roots.append(derived)
+    if subpaths:
+        roots.extend(subpaths)
+    if not roots:
+        roots = [""]
+
+    # Resolve filters with the shared helpers to ensure parity with CLI
+    from .print_files import resolve_exclusions, resolve_extensions  # type: ignore
+
+    # Defaults match CLI behavior unless explicitly overridden
+    exts = (
+        extensions
+        if extensions is not None
+        else resolve_extensions(custom_extensions=[], no_docs=False)
+    )
+    exc = (
+        exclude
+        if exclude is not None
+        else resolve_exclusions(
+            no_exclude=False,
+            custom_excludes=[],
+            include_tests=False,
+            include_lock=False,
+            include_binary=False,
+            no_ignore=True,  # critical: remote repo should not consult local gitignore
+            paths=roots,
+        )
+    )
+    inc_empty = bool(include_empty) if include_empty is not None else False
+    headers_only = bool(only_headers) if only_headers is not None else False
+
+    formatter = XmlFormatter() if tag == "xml" else MarkdownFormatter()
+    source = GitHubRepoSource(url)
+    printer = DepthFirstPrinter(
+        source,
+        formatter,
+        include_empty=inc_empty,
+        only_headers=headers_only,
+        extensions=exts,
+        exclude=exc,
+    )
+    buf = StringWriter()
+    printer.run(roots, buf)
+    return buf.text()
 
 
 if __name__ == "__main__":
