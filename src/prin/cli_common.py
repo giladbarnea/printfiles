@@ -51,7 +51,7 @@ def parse_common_args(
         help="Include `test` and `tests` directories and spec.ts files.",
     )
     parser.add_argument(
-        "-L",
+        "-K",
         "--include-lock",
         action="store_true",
         help="Include lock files (e.g. package-lock.json, poetry.lock, Cargo.lock).",
@@ -72,7 +72,7 @@ def parse_common_args(
         help="Exclude `.md`, `.mdx` and `.rst` files. Has no effect if -t,--type is specified.",
     )
     parser.add_argument(
-        "-E",
+        "-M",
         "--include-empty",
         action="store_true",
         help="Include empty files and files that only contain imports and __all__=... expressions.",
@@ -83,6 +83,8 @@ def parse_common_args(
     parser.add_argument(
         "-t",
         "--type",
+        "-e",
+        "--extension",
         type=str,
         default=[],
         action="append",
@@ -96,7 +98,9 @@ def parse_common_args(
 
     parser.add_argument(
         "-x",
+        "-E",
         "--exclude",
+        "--ignore",
         type=str,
         help="Exclude files or directories whose path contains the given name/path or matches the given glob. Can be specified multiple times. By default, excludes "
         + ", ".join(map(_describe_predicate, DEFAULT_EXCLUSIONS))

@@ -99,5 +99,8 @@ Print absolute paths (instead of paths relative to the current working directory
 - `-a`, `--text`
 Treat binary files as text (search and print them as-is).
 
+- `--binary`, `--include-binary`
+Include binary files in the output (e.g., *.pyc, images, archives). Binary files are emitted as headers only in some formats.
+
 - `-n`, `--line-number` (alias: `--line-numbers`)
 Show line numbers in printed file contents.
