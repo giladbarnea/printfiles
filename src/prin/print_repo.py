@@ -174,9 +174,15 @@ if __name__ == "__main__":
 def matches(argv: list[str]) -> bool:
     if not argv:
         return False
-    first = argv[0].strip().lower()
-    return (
-        first.startswith("https://github.com/")
-        or first.startswith("http://github.com/")
-        or first.startswith("git+https://github.com/")
+    patterns = (
+        "https://github.com/",
+        "http://github.com/",
+        "git+https://github.com/",
     )
+    for tok in argv:
+        if tok.startswith("-"):
+            continue
+        low = tok.strip().lower()
+        if any(low.startswith(p) for p in patterns):
+            return True
+    return False
