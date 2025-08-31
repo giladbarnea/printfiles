@@ -19,7 +19,7 @@ def parse_common_args(
     epilog = textwrap.dedent(
         f"""
         DEFAULT MATCH CRITERIA
-        When -t,--type is unspecified, the following file extensions are matched: {", ".join(resolve_extensions(custom_extensions=[], no_docs=False))}.
+        When -e,--extension is unspecified, the following file extensions are matched: {", ".join(resolve_extensions(custom_extensions=[], no_docs=False))}.
 
         NOTE ABOUT EXCLUSIONS
         Exclusions match rather eagerly, because each specified exclusion is handled like a substring match. For example, 'o/b' matches 'foo/bar/baz'.
@@ -51,7 +51,7 @@ def parse_common_args(
         help="Include `test` and `tests` directories and spec.ts files.",
     )
     parser.add_argument(
-        "-L",
+        "-K",
         "--include-lock",
         action="store_true",
         help="Include lock files (e.g. package-lock.json, poetry.lock, Cargo.lock).",
@@ -69,10 +69,10 @@ def parse_common_args(
         "-d",
         "--no-docs",
         action="store_true",
-        help="Exclude `.md`, `.mdx` and `.rst` files. Has no effect if -t,--type is specified.",
+        help="Exclude `.md`, `.mdx` and `.rst` files. Has no effect if -e,--extension is specified.",
     )
     parser.add_argument(
-        "-E",
+        "-M",
         "--include-empty",
         action="store_true",
         help="Include empty files and files that only contain imports and __all__=... expressions.",
@@ -81,12 +81,12 @@ def parse_common_args(
         "-l", "--only-headers", action="store_true", help="Print only the file paths."
     )
     parser.add_argument(
-        "-t",
-        "--type",
+        "-e",
+        "--extension",
         type=str,
         default=[],
         action="append",
-        help="Match only files with the given extensions or glob patterns. Can be specified multiple times.",
+        help="Only include files with the given extension (repeatable).",
     )
     # Lazy import remaining helpers for help text
     from .print_files import (
@@ -95,10 +95,11 @@ def parse_common_args(
     )
 
     parser.add_argument(
-        "-x",
+        "-E",
         "--exclude",
+        "--ignore",
         type=str,
-        help="Exclude files or directories whose path contains the given name/path or matches the given glob. Can be specified multiple times. By default, excludes "
+        help="Exclude files or directories by shell-style glob or regex (repeatable). By default, excludes "
         + ", ".join(map(_describe_predicate, DEFAULT_EXCLUSIONS))
         + ", and any files in .gitignore, .git/info/exclude, and ~/.config/git/ignore.",
         default=[],
@@ -126,7 +127,7 @@ def derive_filters_and_print_flags(args) -> tuple[list[str], list, bool, bool]:
     # Lazy import to avoid cycles
     from .print_files import resolve_exclusions, resolve_extensions  # type: ignore
 
-    extensions = resolve_extensions(custom_extensions=args.type, no_docs=args.no_docs)
+    extensions = resolve_extensions(custom_extensions=args.extension, no_docs=args.no_docs)
     exclusions = resolve_exclusions(
         no_exclude=args.no_exclude,
         custom_excludes=args.exclude,

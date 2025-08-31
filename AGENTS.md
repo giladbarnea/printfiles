@@ -17,7 +17,7 @@ Engine-driven depth-first traversal with source adapters; the engine is source-a
 - GitHub: list via Contents API; for file paths, raise NotADirectoryError so engine force-includes; ignore local .gitignore for repos.
 
 ### CLI and flags
-- One shared parser in `cli_common` used by both implementations; no interactive prompts; consistent flags (`-t`, `-x`, `--no-ignore`, `-E`, `-l`, etc.).
+- One shared parser in `cli_common` used by both implementations; no interactive prompts; consistent flags (`-e`, `-E`, `--no-ignore`, `-l`, etc.).
 - `prin` dispatches: GitHub URL → repo implementation; otherwise filesystem. Keep URL detection minimal and robust.
 
 ### Filtering semantics
