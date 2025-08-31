@@ -8,8 +8,9 @@ Engine-driven depth-first traversal with source adapters; the engine is source-a
 
 ### Core invariants
 - Engine owns traversal/filters/printing; adapters only list/read/is_empty.
-- Explicit file roots must print regardless of filters (engine handles by treating file roots as force-include).
-- Paths are printed relative to each provided root (single file root prints just its basename).
+- Explicit file paths must print regardless of filters (engine handles by treating file paths as force-include).
+- Paths are printed relative to each provided root (single file path prints just its basename).
+- print_files.py and print_repo.py should behave exactly the same way: same CLI, same filters, same output. For the user, they should be interchangeable. Internally, they should leverage as much shared code as possible.
 
 ### Adapters
 - File system: `is_empty` via AST; raises NotADirectoryError for files (implicit via scandir).

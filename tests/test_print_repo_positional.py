@@ -49,14 +49,12 @@ def test_repo_explicit_ignored_file_is_printed():
     assert "<LICENSE>" in out
 
 
-@pytest.mark.skip(reason="Need a second tiny repo to avoid rate limits; add later")
-def test_two_repositories_print_both():
+def test_two_positional_repositories_print_both():
     url1 = "https://github.com/TypingMind/awesome-typingmind"
-    url2 = "https://github.com/TypingMind/awesome-typingmind"  # placeholder
-    out1 = _run_repo(url1, [""])
-    out2 = _run_repo(url2, [""])
-    assert "<README.md>" in out1
-    assert "<README.md>" in out2
+    url2 = "https://github.com/trouchet/rust-hello"
+    out = _run_repo(url1, url2, [""])
+    assert "logos/README.md" in out
+    assert "<Cargo.toml>" in out
 
 
 @pytest.mark.timeout(15)

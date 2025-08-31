@@ -37,8 +37,6 @@ prin ./agents/graph/ github.com/pydantic/pydantic-ai/{docs,examples} | claude -p
 
 See `prin --help` for the full list of options.
 
-## Example Output
-
 
 ### Development
 - Setup and test: `uv sync`; `uv run python -m pytest -q`
