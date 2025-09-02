@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from prin.print_repo import render_repo
+from prin.core import StringWriter
+from prin.print_repo import main as repo_main
 
 
 @pytest.fixture(autouse=True)
@@ -26,15 +27,18 @@ def _ensure_github_token(monkeypatch):
 def test_repo_explicit_ignored_file_is_printed():
     # LICENSE has no extension; treat it as ignored by default, but explicit path must print it
     url = "https://github.com/TypingMind/awesome-typingmind/LICENSE"
-    out = render_repo(url)  # Path embedded in URL
+    buf = StringWriter()
+    repo_main(url, argv=[], writer=buf)  # Path embedded in URL
+    out = buf.text()
     assert "<LICENSE>" in out
 
 
-@pytest.mark.skip(reason="Failing. If fixed, should be a deliberate decision.")
-def test_two_positional_repositories_print_both():
+def test_pass_two_repositories_positionally_print_both():
     url1 = "https://github.com/TypingMind/awesome-typingmind"
     url2 = "https://github.com/trouchet/rust-hello"
-    out = render_repo(url1, url2, [""])
+    buf = StringWriter()
+    repo_main(url1, url2, subpaths=[""], argv=[], writer=buf)
+    out = buf.text()
     assert "logos/README.md" in out
     assert "<Cargo.toml>" in out
 
@@ -43,6 +47,8 @@ def test_two_positional_repositories_print_both():
 def test_repo_dir_and_explicit_ignored_file():
     # Embed LICENSE in URL, and also traverse repo root by adding an empty root
     url = "https://github.com/TypingMind/awesome-typingmind/LICENSE"
-    out = render_repo(url, [""])  # default root + embedded explicit path
-    assert "<README.md>" not in out  # normal traversal still prints repo files
+    buf = StringWriter()
+    repo_main(url, subpaths=[""], argv=[], writer=buf)  # default root + embedded explicit path
+    out = buf.text()
+    assert "<README.md>" not in out  # normal traversal doesn't print repo files
     assert "<LICENSE>" in out  # explicit inclusion prints extensionless file

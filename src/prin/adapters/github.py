@@ -27,7 +27,12 @@ def _auth_headers() -> Dict[str, str]:
 def _parse_owner_repo(url: str) -> tuple[str, str]:
     import re
 
-    m = re.match(r"https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)", url.strip())
+    raw = url.strip()
+    if raw.startswith("git+"):
+        raw = raw[4:]
+    if not re.match(r"^[a-z]+://", raw):
+        raw = "https://" + raw  # allow scheme-less inputs like github.com/owner/repo
+    m = re.match(r"https?://github\.com/([^/]+)/([^/]+?)(?:\.git)?(?:/|$)", raw)
     if not m:
         msg = f"Unrecognized GitHub URL: {url}"
         raise ValueError(msg)

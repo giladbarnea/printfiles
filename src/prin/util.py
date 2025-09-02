@@ -14,7 +14,10 @@ def is_github_url(token: str) -> bool:
     tok = token.strip().lower()
     if tok.startswith("-"):
         return False
-    return any(tok.startswith(p) for p in GITHUB_URL_PATTERNS)
+    if any(tok.startswith(p) for p in GITHUB_URL_PATTERNS):
+        return True
+    # Also accept scheme-less github.com/owner/repo[...] tokens
+    return tok.startswith("github.com/") or tok.startswith("www.github.com/")
 
 
 def find_github_url(argv: Iterable[str]) -> tuple[int, str] | None:
