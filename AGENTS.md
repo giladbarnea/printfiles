@@ -1,6 +1,6 @@
 # Agents.md
 
-Read all Markdown files in the root dir of this project before reading this file.
+Read all Markdown files in the root dir of this project before starting a new task.
 
 ### Architecture
 
@@ -37,5 +37,5 @@ Everything should be executed, installed, tested and packaged using uv.
 
 ## Being an Effective AI Agent
 
-1. You do your best work when you have a way to check it. Probe for one if none is explicitly provided. Verification enables continuous trial and error instead of a single shot in the dark. When testing, run both problem-specific tests and wider tests to discover potential regression problems. Trial & error loop goes like this: Give me clear and succinct status update; tell me your planned changes; apply them; run tests; repeat.
+1. You do your best work when you have a way to check it. Run test.sh frequently. Verification enables continuous trial and error instead of a single shot in the dark. When testing, run both problem-specific tests and wider tests to discover potential regression problems. Trial & error loop goes like this: Give me clear and succinct status update; tell me your planned changes; apply them; run tests; repeat.
 2. Know your weaknesses: your eagerness to solve a problem can lead to tunnel vision. You may fix the issue but unintentionally create code duplication, deviate from the existing design, or introduce a regression in other coupled parts of the project you didn’t consider. The solution is to often literally look around beyond the immediate problem, be aware of (and account for) coupling around the codebase, try to integrate with the existing design, and periodically refactor.
