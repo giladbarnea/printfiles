@@ -9,6 +9,9 @@ from prin.formatters import XmlFormatter
 
 
 def _write(p: Path, content: str) -> None:
+    """
+    Smell: this and similar functions across this tests/ dir should be moved to a shared tests/utils.py file.
+    """
     p.write_text(content, encoding="utf-8")
 
 
