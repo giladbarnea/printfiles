@@ -42,7 +42,7 @@ DEFAULT_EXCLUSIONS: list[TExclusion] = [
 ]
 
 
-DEFAULT_SUPPORTED_EXTENSIONS: list[TExclusion] = [
+DEFAULT_SUPPORTED_EXTENSIONS: list[str] = [
     ".py",
     ".ts",
     ".tsx",

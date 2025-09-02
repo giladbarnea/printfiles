@@ -133,13 +133,8 @@ class GitHubRepoSource(SourceAdapter):
                 return base64.b64decode(info["content"], validate=False)
         dl = info.get("download_url")
         if dl:
-            r2 = self._session.get(dl, stream=True)
-            if r2.status_code in (403, 429):
-                wait = _parse_rate_limit_wait_seconds(r2)
-                if wait is not None and wait <= MAX_WAIT_SECONDS:
-                    time.sleep(wait)
-                    r2 = self._session.get(dl, stream=True)
-            r2.raise_for_status()
+            # Reuse shared GET with rate-limit/backoff handling
+            r2 = _get(self._session, dl, stream=True)
             return r2.content
         # Fallback to blob by sha
         sha = info.get("sha")

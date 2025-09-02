@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from prin.adapters.filesystem import FileSystemSource
-from prin.core import DepthFirstPrinter
+from prin.core import DepthFirstPrinter, StringWriter
+from prin.defaults import DEFAULT_BINARY_EXCLUSIONS, DEFAULT_EXCLUSIONS
 from prin.formatters import XmlFormatter
 
 
@@ -18,24 +19,14 @@ def _touch(p: Path) -> None:
 
 
 def _run(src: FileSystemSource, roots: list[str]) -> str:
-    class _Buf:
-        def __init__(self) -> None:
-            self.parts: list[str] = []
-
-        def write(self, s: str) -> None:
-            self.parts.append(s)
-
-        def text(self) -> str:
-            return "".join(self.parts)
-
-    buf = _Buf()
+    buf = StringWriter()
     printer = DepthFirstPrinter(
         src,
         XmlFormatter(),
         include_empty=True,
         only_headers=False,
         extensions=[".py", ".md", ".json"],
-        exclude=["__pycache__", "*.pyc", "build", "dist", "*.o", "*.so"],
+        exclude=[*DEFAULT_EXCLUSIONS, *DEFAULT_BINARY_EXCLUSIONS],
     )
     printer.run(roots, buf)
     return buf.text()

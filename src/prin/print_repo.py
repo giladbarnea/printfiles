@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import sys
@@ -12,6 +11,10 @@ from .util import extract_in_repo_subpath, is_github_url
 
 
 def main(url: str | None = None) -> None:
+    """
+    Smell: this is still written a bit like a CLI callback but should be a good-old function with arguments.
+    It's only accessed by prin.py anyway. Along the same lines, the `if __name__ == "__main__"` protection should be removed.
+    """
     parser, args = parse_common_args()
     # Special-case: first positional may be a GitHub URL; otherwise, require --repo
     if url is None:

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from prin.adapters.filesystem import FileSystemSource
 from prin.cli_common import derive_filters_and_print_flags, parse_common_args
-from prin.core import DepthFirstPrinter
+from prin.core import DepthFirstPrinter, StringWriter
 from prin.formatters import XmlFormatter
 
 
@@ -50,17 +50,7 @@ def test_cli_engine_happy_path(tmp_path):
         exclude=[],
     )
 
-    class _Buf:
-        def __init__(self) -> None:
-            self.parts: list[str] = []
-
-        def write(self, s: str) -> None:
-            self.parts.append(s)
-
-        def text(self) -> str:
-            return "".join(self.parts)
-
-    buf = _Buf()
+    buf = StringWriter()
     printer.run([str(tmp_path)], buf)
     out = buf.text()
 
@@ -95,17 +85,7 @@ def test_cli_engine_isolation(tmp_path):
         exclude=[],
     )
 
-    class _Buf:
-        def __init__(self) -> None:
-            self.parts: list[str] = []
-
-        def write(self, s: str) -> None:
-            self.parts.append(s)
-
-        def text(self) -> str:
-            return "".join(self.parts)
-
-    buf = _Buf()
+    buf = StringWriter()
     # Explicitly pass the tmp_path root to run
     printer.run([str(tmp_path)], buf)
     out = buf.text()
