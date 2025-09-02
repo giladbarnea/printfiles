@@ -137,12 +137,11 @@ class DepthFirstPrinter:
         self.exclude = exclude
         self._printed_paths: set[str] = set()
 
-        # Import filtering primitives from the reference implementation
-        # to preserve semantics exactly.
-        from . import print_files as pf  # type: ignore
+        # Use shared filtering primitives
+        from . import filters as _filters
 
-        self._pf_is_excluded: Callable[[object, list], bool] = pf.is_excluded
-        self._pf_is_glob: Callable[[object], bool] = pf.is_glob  # type: ignore[attr-defined]
+        self._pf_is_excluded: Callable[[object, list], bool] = _filters.is_excluded
+        self._pf_is_glob: Callable[[object], bool] = _filters.is_glob
 
     def run(self, roots: list[str], writer: Writer) -> None:
         for root_spec in roots or ["."]:

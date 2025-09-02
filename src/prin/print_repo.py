@@ -7,7 +7,9 @@ from urllib.parse import urlparse
 from .adapters.github import GitHubRepoSource
 from .cli_common import derive_filters_and_print_flags, parse_common_args
 from .core import DepthFirstPrinter, StdoutWriter, StringWriter
+from .defaults import DEFAULT_TAG
 from .formatters import MarkdownFormatter, XmlFormatter
+from .util import is_github_url
 
 
 def _extract_in_repo_subpath(url: str) -> str:
@@ -98,7 +100,7 @@ def render_repo(
     url: str,
     subpaths: list[str] | None = None,
     *,
-    tag: str = "xml",
+    tag: str = DEFAULT_TAG,
     include_empty: bool | None = None,
     only_headers: bool | None = None,
     extensions: list[str] | None = None,
@@ -176,15 +178,4 @@ if __name__ == "__main__":
 def matches(argv: list[str]) -> bool:
     if not argv:
         return False
-    patterns = (
-        "https://github.com/",
-        "http://github.com/",
-        "git+https://github.com/",
-    )
-    for tok in argv:
-        if tok.startswith("-"):
-            continue
-        low = tok.strip().lower()
-        if any(low.startswith(p) for p in patterns):
-            return True
-    return False
+    return any(is_github_url(tok) for tok in argv)

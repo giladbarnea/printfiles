@@ -1,5 +1,4 @@
 #!/usr/bin/env python3.12
-import ast
 import os
 from collections.abc import Generator
 from fnmatch import fnmatch
@@ -16,25 +15,36 @@ from typing import Any, TypeIs
 
 from typeguard import typechecked
 
-from prin.defaults import (
-    DEFAULT_BINARY_EXCLUSIONS,
-    DEFAULT_DOC_EXTENSIONS,
-    DEFAULT_EXCLUSIONS,
-    DEFAULT_LOCK_EXCLUSIONS,
-    DEFAULT_SUPPORTED_EXTENSIONS,
-    DEFAULT_TEST_EXCLUSIONS,
+from prin.types import TExclusion, TExtension, TGlob
+
+from .core import is_text_semantically_empty
+from .filters import (
+    is_excluded as _shared_is_excluded,
 )
-from prin.types import TExclusion, TExtension, TGlob, _is_extension, _is_glob
+from .filters import (
+    is_extension as _shared_is_extension,
+)
+from .filters import (
+    is_glob as _shared_is_glob,
+)
+from .filters import (
+    resolve_exclusions as _shared_resolve_exclusions,
+)
+from .filters import (
+    resolve_extensions as _shared_resolve_extensions,
+)
 
 
 @typechecked
 def is_glob(path) -> TypeIs[TGlob]:
-    return _is_glob(path)
+    # Backwards-compat wrapper
+    return _shared_is_glob(path)
 
 
 @typechecked
 def is_extension(name: str) -> TypeIs[TExtension]:
-    return _is_extension(name)
+    # Backwards-compat wrapper
+    return _shared_is_extension(name)
 
 
 @typechecked
@@ -157,39 +167,13 @@ def depth_first_walk(
 
 @typechecked
 def is_excluded(entry: os.DirEntry[str] | str | TGlob | Path, *, exclude: list[TExclusion]) -> bool:
-    path = Path(getattr(entry, "path", entry))
-    name = path.name
-    stem = path.stem
-    entry_is_glob = is_glob(entry)
-    for _exclude in exclude:
-        excluded_is_glob = entry_is_glob or is_glob(_exclude)
-        if callable(_exclude):
-            if _exclude(name) or _exclude(stem) or _exclude(str(path)):
-                return True
-        elif excluded_is_glob:
-            if fnmatch(name, _exclude) or fnmatch(str(path), _exclude) or fnmatch(stem, _exclude):
-                return True
-        elif (
-            name == _exclude
-            or str(path) == _exclude
-            or stem == _exclude
-            or (is_extension(_exclude) and name.endswith(_exclude))
-        ):
-            return True
-        else:
-            _exclude_glob = f"*{_exclude}" if is_extension(_exclude) else f"*{_exclude}*"
-            if (
-                fnmatch(name, _exclude_glob)
-                or fnmatch(str(path), _exclude_glob)
-                or fnmatch(stem, _exclude_glob)
-            ):
-                return True
-    return False
+    # Backwards-compat wrapper to shared filters
+    return _shared_is_excluded(entry, exclude=exclude)
 
 
 @typechecked
 def is_empty(entry: os.DirEntry[str] | Path) -> bool:
-    """Uses ast and returns True if the file only contains import statements, __all__=... assignment, and/or docstrings. Bug: doesn't handle comments (and shebang?)"""
+    """Return True if the file is semantically empty (imports, __all__, docstrings)."""
     if isinstance(entry, os.DirEntry):
         if entry.is_dir():
             return False
@@ -204,76 +188,23 @@ def is_empty(entry: os.DirEntry[str] | Path) -> bool:
             content = file.read()
     except UnicodeDecodeError:
         return False
-
-    if not content.strip():
-        return True
-
-    try:
-        tree = ast.parse(content)
-    except SyntaxError:
-        return False
-
-    # Files containing only imports, __all__=..., or docstrings are considered empty.
-    for node in ast.iter_child_nodes(tree):
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            continue
-        elif isinstance(node, ast.Assign):
-            targets = node.targets
-            if (
-                len(targets) == 1
-                and isinstance(targets[0], ast.Name)
-                and targets[0].id == "__all__"
-            ):
-                continue
-        elif (
-            isinstance(node, ast.Expr)
-            and isinstance(node.value, ast.Constant)
-            and isinstance(node.value.value, str)
-        ):
-            # This is a string expression (docstring)
-            continue
-        else:
-            return False
-    return True
+    return is_text_semantically_empty(content)
 
 
 @typechecked
 def read_gitignore_file(gitignore_path: Path) -> list[TExclusion]:
-    """Read a gitignore-like file and return list of exclusion patterns."""
-    exclusions = []
-    try:
-        with gitignore_path.open("r", encoding="utf-8") as f:
-            for line in f:
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#"):
-                    exclusions.append(stripped)
-    except (FileNotFoundError, UnicodeDecodeError, PermissionError):
-        pass
-    return exclusions
+    # Backwards-compat wrapper
+    from .filters import read_gitignore_file as _read
+
+    return _read(gitignore_path)
 
 
 @typechecked
 def get_gitignore_exclusions(paths: list[str]) -> list[TExclusion]:
-    """Get exclusions from gitignore files for given paths."""
-    exclusions = []
+    # Backwards-compat wrapper
+    from .filters import get_gitignore_exclusions as _gg
 
-    # Read global git ignore file
-    home_config_ignore = Path.home() / ".config" / "git" / "ignore"
-    exclusions.extend(read_gitignore_file(home_config_ignore))
-
-    # Read gitignore files for each directory path
-    for path_str in paths:
-        path = Path(path_str)
-        if path.is_dir():
-            # Try .gitignore in the directory
-            gitignore_path = path / ".gitignore"
-            exclusions.extend(read_gitignore_file(gitignore_path))
-
-            # Try .git/info/exclude in the directory
-            git_exclude_path = path / ".git" / "info" / "exclude"
-            exclusions.extend(read_gitignore_file(git_exclude_path))
-
-    return exclusions
+    return _gg(paths)
 
 
 @typechecked
@@ -287,27 +218,16 @@ def resolve_exclusions(
     no_ignore: bool,
     paths: list[str],
 ) -> list[TExclusion]:
-    """
-    Resolve final exclusion list based on command line arguments.
-    Smell: generic logic that should be moved somewhere common."""
-    if no_exclude:
-        return []
-
-    exclusions = DEFAULT_EXCLUSIONS.copy()
-    exclusions.extend(custom_excludes)
-
-    if not include_tests:
-        exclusions.extend(DEFAULT_TEST_EXCLUSIONS)
-
-    if not include_lock:
-        exclusions.extend(DEFAULT_LOCK_EXCLUSIONS)
-
-    if not include_binary:
-        exclusions.extend(DEFAULT_BINARY_EXCLUSIONS)
-
-    if not no_ignore:
-        exclusions.extend(get_gitignore_exclusions(paths))
-    return exclusions
+    # Backwards-compat wrapper
+    return _shared_resolve_exclusions(
+        no_exclude=no_exclude,
+        custom_excludes=custom_excludes,
+        include_tests=include_tests,
+        include_lock=include_lock,
+        include_binary=include_binary,
+        no_ignore=no_ignore,
+        paths=paths,
+    )
 
 
 @typechecked
@@ -316,15 +236,8 @@ def resolve_extensions(
     custom_extensions: list[str],
     no_docs: bool,
 ) -> list[str]:
-    """Resolve final extension list based on command line arguments."""
-    if custom_extensions:
-        extensions = custom_extensions
-    else:
-        extensions = DEFAULT_SUPPORTED_EXTENSIONS
-        if not no_docs:
-            extensions.extend(DEFAULT_DOC_EXTENSIONS)
-
-    return extensions
+    # Backwards-compat wrapper
+    return _shared_resolve_extensions(custom_extensions=custom_extensions, no_docs=no_docs)
 
 
 def main():

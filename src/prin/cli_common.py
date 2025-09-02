@@ -20,6 +20,7 @@ from prin.defaults import (
     DEFAULT_TAG,
     DEFAULT_TAG_CHOICES,
 )
+from prin.filters import resolve_extensions
 from prin.types import _describe_predicate
 
 # Intentionally avoid importing from print_files at module import time to
@@ -29,11 +30,6 @@ from prin.types import _describe_predicate
 def parse_common_args(
     argv: list[str] | None = None,
 ) -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
-    # Lazy imports from the reference implementation
-    from .print_files import (
-        resolve_extensions,  # type: ignore
-    )
-
     epilog = textwrap.dedent(
         f"""
         DEFAULT MATCH CRITERIA
@@ -153,8 +149,7 @@ def parse_common_args(
 
 
 def derive_filters_and_print_flags(args) -> tuple[list[str], list, bool, bool]:
-    # Lazy import to avoid cycles
-    from .print_files import resolve_exclusions, resolve_extensions  # type: ignore
+    from .filters import resolve_exclusions, resolve_extensions  # shared helpers
 
     extensions = resolve_extensions(custom_extensions=args.extension, no_docs=args.no_docs)
     exclusions = resolve_exclusions(
