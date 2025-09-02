@@ -23,3 +23,88 @@ dev = [
     "pytest>=8.4.1",
     "ruff>=0.12.11",
 ]
+
+[tool.ruff]
+indent-width = 4
+line-length = 100
+output-format = "grouped"
+target-version = "py312"
+show-fixes = true
+
+[tool.ruff.lint]
+select = [
+  "ASYNC100",  # Cancel-scope-no-checkpoint
+  "ASYNC109",  # Async-function-with-timeout
+  "ASYNC110",  # Async-busy-wait
+  "ASYNC210",  # Blocking-http-call-in-async-function
+  "ASYNC222",  # Wait-for-process-in-async-function
+  "ASYNC230",  # Blocking-open-call-in-async-function
+  "ASYNC251",  # Blocking-sleep-in-async-function
+  "A",         # Unused arguments of all kinds
+  "B006",      # Mutable argument default
+  "B007",      # Unused loop control variable
+  "B008",      # Function call in default argument
+  "D201",      # No blank lines allowed before function docstring
+  "D204",      # 1 blank line required after class docstring
+  "D210",      # No whitespaces allowed surrounding docstring text
+  "D211",      # No blank lines allowed before class docstring
+  "D213",      # No """Return ...\n""" allowed in docstrings
+  # "E501",      # Line too long  * Commented because `ruff format` is best-effort, not 100%, so this just creates noise
+  "E711",      # None comparison
+  "E712",      # True False comparison
+  "E713",      # Not in
+  "E714",      # Not is
+  "E721",      # Type(...) == 
+  "E902",      # IO Error. When Ruff can't read a file
+  "FAST001",   # FastAPI redundant response model
+  "FAST002",   # FastAPI bad dependency definition
+  "F",         # PyFlakes
+  # "F401",      # Unused import
+  # "FBT003",    # Boolean positional argument
+  # "F811",      # Redefined while unused
+  # "F841",      # Unused variable
+  # "F842",      # Unused annotation
+  "I",         # Unsorted imports
+  "ISC001",    # Single-line-implicit-string-concatenation
+  "PLW",       # Warning
+  # "PLW2901",   # `for` loop variable overwritten by assignment target
+  "PT",        # Pytest
+  "PTH",       # Pathlib vs os.path usage
+  "RUF008",    # Mutable dataclass default argument
+  "RUF012",    # Mutable class default argument
+  "RUF024",    # Mutable fromkeys value
+  "RUF028",    # Invalid formatter suppression comment
+  "RUF029",    # Unused async
+  "RUF034",    # Useless if-else
+  "RUF053",    # Class with type parameter list inherits from Generic
+  "RUF059",    # Unused unpacked variable
+  "RUF100",    # Unused noqa directive
+  "RUF102",    # Invalid rule code in noqa
+  "SIM",       # Pyflake-simplify. All of them are good except SIM108, which is in `ignore` down below.
+  "S110",      # Try-except-pass silent suppression
+  "S113",      # Request-without-timeout
+  "S306",      # Suspicious-mktemp-usage
+  "W291",      # Trailing whitespace
+  "W605",      # Invalid escape sequence. "\.md$" => r"\.md$"
+  
+  # Get back to these when have time:
+  # "FAST003",  # Fast-api-unused-path-parameter
+  # Resume from suspicious-mktemp-usage (S306)
+]
+
+ignore = [
+  "SIM108",    # Use ternary instead of if/else (bad advice)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+  "F401",  # Unused import
+  "I001",  # Import block is un-sorted or un-formatted
+]
+
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
