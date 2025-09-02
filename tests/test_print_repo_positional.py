@@ -22,7 +22,6 @@ def _ensure_github_token(monkeypatch):
         monkeypatch.setenv("GITHUB_TOKEN", token)
 
 
-@pytest.mark.timeout(15)
 def test_repo_explicit_ignored_file_is_printed():
     # LICENSE has no extension; treat it as ignored by default, but explicit path must print it
     url = "https://github.com/TypingMind/awesome-typingmind/LICENSE"
@@ -39,7 +38,6 @@ def test_two_positional_repositories_print_both():
     assert "<Cargo.toml>" in out
 
 
-@pytest.mark.timeout(15)
 def test_repo_dir_and_explicit_ignored_file():
     # Embed LICENSE in URL, and also traverse repo root by adding an empty root
     url = "https://github.com/TypingMind/awesome-typingmind/LICENSE"

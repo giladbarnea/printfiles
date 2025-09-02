@@ -142,7 +142,7 @@ class DepthFirstPrinter:
         from . import print_files as pf  # type: ignore
 
         self._pf_is_excluded: Callable[[object, list], bool] = pf.is_excluded
-        self._pf_is_glob: Callable[[object], bool] = pf._is_glob  # type: ignore[attr-defined]
+        self._pf_is_glob: Callable[[object], bool] = pf.is_glob  # type: ignore[attr-defined]
 
     def run(self, roots: list[str], writer: Writer) -> None:
         for root_spec in roots or ["."]:

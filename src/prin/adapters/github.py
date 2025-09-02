@@ -35,7 +35,6 @@ def _parse_owner_repo(url: str) -> tuple[str, str]:
 
 
 def _parse_rate_limit_wait_seconds(resp: requests.Response) -> Optional[int]:
-    
     ra = resp.headers.get("Retry-After")
     if ra:
         with suppress(Exception):

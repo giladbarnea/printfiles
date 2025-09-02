@@ -2,89 +2,28 @@
 import ast
 import inspect
 import os
-import sys
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Annotated, Any, NewType
 
-# We need both or neither, so we bunch them in a single try-except block.
-try:
-    from annotated_types import Predicate
-    from typeguard import typechecked
-except ImportError:
-    Predicate = lambda func: func  # type: ignore
-    typechecked = lambda func: func  # type: ignore
+# # We need both or neither, so we bunch them in a single try-except block.
+# try:
+#     from annotated_types import Predicate
+#     from typeguard import typechecked
+# except ImportError:
+#     Predicate = lambda func: func  # type: ignore
+#     typechecked = lambda func: func  # type: ignore
+from typing import Any, TypeIs
 
-if sys.version_info[:2] >= (3, 13):
-    from typing import TypeIs
-else:
-    try:
-        from typing_extensions import TypeIs
-    except ImportError:
-        from typing import TypeGuard
+from typeguard import typechecked
 
-        TypeIs = TypeGuard  # Bug: TypeGuard is not subscriptable
+from prin.defaults import DEFAULT_EXCLUSIONS
+from prin.types import TExclusion, TExtension, TGlob, _is_extension, _is_glob
 
 # sudo fd -H -I '.*' -t f / --format "{/}" | awk -F. '/\./ && index($0,".")!=1 {ext=tolower($NF); if (length(ext) <= 10 && ext ~ /[a-z]/ && ext ~ /^[a-z0-9]+$/) print ext}' > /tmp/exts.txt  # For all file names which have a name and an extension, write to file lowercased extensions which are alphanumeric, <= 10 characters long, and have at least one letter
 # rg --type-list | py.eval "[print(extension) for line in lines for ext in line.split(': ')[1].split(', ') if (extension:=ext.removeprefix('*.').removeprefix('.*').removeprefix('.').removeprefix('*').lower()).isalnum()]" --readlines >> /tmp/exts.txt
 # sort -u -o /tmp/exts.txt /tmp/exts.txt
 SUPPORTED_EXTENSIONS = []
-TPath = NewType("TPath", str)
-
-
-def __is_glob(path) -> bool:
-    if not isinstance(path, str):
-        return False
-    return any(c in path for c in "*?![]")
-
-
-def __is_extension(name: str) -> bool:
-    return name.startswith(".") and os.path.sep not in name
-
-
-TGlob = Annotated[NewType("TGlob", str), Predicate(__is_glob)]
-TExtension = Annotated[NewType("TExtension", str), Predicate(__is_extension)]
-
-"""
-TExclusion is a union of:
-- TPath: A string representing a file or directory path. Matches by substring (e.g., "foo/bar" matches "foo/bar/baz").
-- TGlob: A string representing a glob pattern.
-- Callable[[TPath | TGlob], bool]: A function that takes a TPath or TGlob and returns a boolean.
-"""
-TExclusion = TPath | TGlob | Callable[[TPath | TGlob], bool]
-
-
-DEFAULT_EXCLUSIONS: list[TExclusion] = [
-    lambda x: x.endswith("egg-info"),
-    "build",
-    "bin",
-    "dist",
-    "node_modules",
-    lambda x: x.startswith("."),
-    lambda x: "cache" in str(x).lower(),
-    # Build artifacts and dependencies
-    "target",
-    "vendor",
-    "out",
-    "coverage",
-    # IDE and editor files
-    "*.swp",
-    "*.swo",
-    # Language-specific
-    "*.class",
-    "*.o",
-    "*.so",
-    "*.dylib",
-    # Logs and temporary files
-    "logs",
-    "*.log",
-    "*.tmp",
-    # Environment and secrets
-    "secrets",
-    "*.key",
-    "*.pem",
-]
 
 
 @typechecked
@@ -107,13 +46,13 @@ def _describe_predicate(pred: TExclusion) -> str:
 
 
 @typechecked
-def _is_glob(path) -> TypeIs[TGlob]:
-    return __is_glob(path)
+def is_glob(path) -> TypeIs[TGlob]:
+    return _is_glob(path)
 
 
 @typechecked
-def _is_extension(name: str) -> TypeIs[TExtension]:
-    return __is_extension(name)
+def is_extension(name: str) -> TypeIs[TExtension]:
+    return _is_extension(name)
 
 
 @typechecked
@@ -187,7 +126,7 @@ def print_files_contents(
             # Try to match the file against the extensions
             if any(
                 fnmatch(file, extension_pattern)
-                if _is_glob(extension_pattern)
+                if is_glob(extension_pattern)
                 else file.endswith("." + extension_pattern.removeprefix("."))
                 for extension_pattern in extensions
             ):
@@ -239,24 +178,24 @@ def is_excluded(entry: os.DirEntry[str] | str | TGlob | Path, *, exclude: list[T
     path = Path(getattr(entry, "path", entry))
     name = path.name
     stem = path.stem
-    entry_is_glob = _is_glob(entry)
+    entry_is_glob = is_glob(entry)
     for _exclude in exclude:
-        is_glob = entry_is_glob or _is_glob(_exclude)
+        excluded_is_glob = entry_is_glob or is_glob(_exclude)
         if callable(_exclude):
             if _exclude(name) or _exclude(stem) or _exclude(str(path)):
                 return True
-        elif is_glob:
+        elif excluded_is_glob:
             if fnmatch(name, _exclude) or fnmatch(str(path), _exclude) or fnmatch(stem, _exclude):
                 return True
         elif (
             name == _exclude
             or str(path) == _exclude
             or stem == _exclude
-            or (_is_extension(_exclude) and name.endswith(_exclude))
+            or (is_extension(_exclude) and name.endswith(_exclude))
         ):
             return True
         else:
-            _exclude_glob = f"*{_exclude}" if _is_extension(_exclude) else f"*{_exclude}*"
+            _exclude_glob = f"*{_exclude}" if is_extension(_exclude) else f"*{_exclude}*"
             if (
                 fnmatch(name, _exclude_glob)
                 or fnmatch(str(path), _exclude_glob)
