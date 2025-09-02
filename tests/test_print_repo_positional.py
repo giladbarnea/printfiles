@@ -44,7 +44,6 @@ def test_pass_two_repositories_positionally_print_both():
     assert "<Cargo.toml>" in out
 
 
-@pytest.mark.skip(reason="Failing. If fixed, should be a deliberate decision.")
 def test_repo_dir_and_explicit_ignored_file():
     # Embed LICENSE in URL, and also traverse repo root by adding an empty root
     url = "https://github.com/TypingMind/awesome-typingmind/LICENSE"

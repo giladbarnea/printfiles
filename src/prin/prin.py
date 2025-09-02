@@ -20,13 +20,15 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
     out_writer = writer or StdoutWriter()
 
     # Split positional inputs into local paths and GitHub URLs
+    # Treat empty-string tokens as no-ops for local paths to avoid unintended CWD traversal
     local_paths: list[str] = []
     repo_urls: list[str] = []
     for tok in ctx.paths:
         if is_github_url(tok):
             repo_urls.append(tok)
         else:
-            local_paths.append(tok)
+            if tok != "":
+                local_paths.append(tok)
 
     # Filesystem chunk (if any)
     if local_paths:
