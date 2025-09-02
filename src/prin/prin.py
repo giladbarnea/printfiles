@@ -5,18 +5,19 @@ import sys
 from .adapters.filesystem import FileSystemSource
 from .adapters.github import GitHubRepoSource
 from .cli_common import derive_filters_and_print_flags, parse_common_args
-from .core import DepthFirstPrinter, StdoutWriter
+from .core import DepthFirstPrinter, StdoutWriter, Writer
 from .formatters import MarkdownFormatter, XmlFormatter
 from .util import extract_in_repo_subpath, is_github_url
 
 
-def main() -> None:
-    argv = sys.argv[1:]
+def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None:
+    if argv is None:
+        argv = sys.argv[1:]
     _parser, args = parse_common_args(argv)
     extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
 
     formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()
-    writer = StdoutWriter()
+    out_writer = writer or StdoutWriter()
 
     # Split positional inputs into local paths and GitHub URLs
     local_paths: list[str] = []
@@ -37,7 +38,7 @@ def main() -> None:
             extensions=extensions,
             exclude=exclusions,
         )
-        fs_printer.run(local_paths, writer)
+        fs_printer.run(local_paths, out_writer)
 
     # GitHub repos (each rendered independently to the same writer)
     if repo_urls:
@@ -68,7 +69,7 @@ def main() -> None:
                 extensions=extensions,
                 exclude=repo_exclusions,
             )
-            gh_printer.run(roots, writer)
+            gh_printer.run(roots, out_writer)
 
 
 if __name__ == "__main__":

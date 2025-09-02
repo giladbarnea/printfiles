@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import functools
 import os
 import time
 from contextlib import suppress
@@ -87,6 +88,7 @@ class GitHubRepoSource(SourceAdapter):
         ref = self._fetch_default_branch(owner, repo)
         self._ctx = _Ctx(owner=owner, repo=repo, ref=ref)
 
+    @functools.lru_cache
     def _fetch_default_branch(self, owner: str, repo: str) -> str:
         r = _get(self._session, f"{API_BASE}/repos/{owner}/{repo}")
         return r.json()["default_branch"]

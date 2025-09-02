@@ -15,15 +15,11 @@ def main(
     argv: list[str] | None = None,
     writer: Writer | None = None,
 ) -> None:
-    """
-    Smell: this is still written a bit like a CLI callback but should be a good-old function with arguments.
-    It's only accessed by prin.py anyway. Along the same lines, the `if __name__ == "__main__"` protection should be removed.
-    """
-    parser, args = parse_common_args(argv)
+    _parser, args = parse_common_args(argv)
     # Special-case: first positional may be a GitHub URL; otherwise, require --repo
     if url is None:
         if not args.paths:
-            parser.error(
+            raise ValueError(
                 "A GitHub repository URL must be provided as the first positional argument"
             )
         url = args.paths[0]

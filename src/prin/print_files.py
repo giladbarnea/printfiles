@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from .adapters.filesystem import FileSystemSource
 from .cli_common import derive_filters_and_print_flags, parse_common_args
-from .core import DepthFirstPrinter, StdoutWriter
+from .core import DepthFirstPrinter, StdoutWriter, Writer
 from .formatters import MarkdownFormatter, XmlFormatter
 
 
-def main() -> None:
-    """
-    Smell: this is still written a bit like a CLI callback but should be a good-old function with arguments.
-    It's only accessed by prin.py anyway. Along the same lines, the `if __name__ == "__main__"` protection should be removed.
-    """
-    _parser, args = parse_common_args()
+def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None:
+    _parser, args = parse_common_args(argv)
     extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
 
     formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()
@@ -23,11 +19,8 @@ def main() -> None:
         extensions=extensions,
         exclude=exclusions,
     )
-    printer.run(args.paths, StdoutWriter())
-
-
-if __name__ == "__main__":
-    main()
+    out_writer = writer or StdoutWriter()
+    printer.run(args.paths, out_writer)
 
 
 def matches(argv: list[str]) -> bool:
