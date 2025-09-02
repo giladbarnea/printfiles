@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from .adapters.filesystem import FileSystemSource
-from .cli_common import derive_filters_and_print_flags, parse_common_args
+from .cli_common import Context, derive_filters_and_print_flags, parse_common_args
 from .core import DepthFirstPrinter, StdoutWriter, Writer
 from .formatters import MarkdownFormatter, XmlFormatter
 
 
 def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None:
-    _parser, args = parse_common_args(argv)
-    extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
+    ctx: Context = parse_common_args(argv)
+    extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(ctx)
 
-    formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()
+    formatter = XmlFormatter() if ctx.tag == "xml" else MarkdownFormatter()
     printer = DepthFirstPrinter(
         FileSystemSource(),
         formatter,
@@ -20,7 +20,7 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
         exclude=exclusions,
     )
     out_writer = writer or StdoutWriter()
-    printer.run(args.paths, out_writer)
+    printer.run(ctx.paths, out_writer)
 
 
 def matches(argv: list[str]) -> bool:

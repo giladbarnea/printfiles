@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import argparse
 import textwrap
-from typing import Tuple
+from dataclasses import dataclass, field
+from typing import Literal
 
 from prin.defaults import (
     DEFAULT_EXCLUDE_FILTER,
@@ -20,16 +21,31 @@ from prin.defaults import (
     DEFAULT_TAG,
     DEFAULT_TAG_CHOICES,
 )
-from prin.filters import resolve_extensions
 from prin.types import _describe_predicate
 
 # Intentionally avoid importing from print_files at module import time to
 # prevent circular imports. We'll import lazily inside functions.
 
 
-def parse_common_args(
-    argv: list[str] | None = None,
-) -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
+@dataclass(slots=True)
+class Context:
+    paths: list[str] = field(default_factory=lambda: [DEFAULT_RUN_PATH])
+    include_tests: bool = DEFAULT_INCLUDE_TESTS
+    include_lock: bool = DEFAULT_INCLUDE_LOCK
+    include_binary: bool = DEFAULT_INCLUDE_BINARY
+    no_docs: bool = DEFAULT_NO_DOCS
+    include_empty: bool = DEFAULT_INCLUDE_EMPTY
+    only_headers: bool = DEFAULT_ONLY_HEADERS
+    extension: list[str] = field(default_factory=lambda: list(DEFAULT_EXTENSIONS_FILTER))
+    exclude: list[str] = field(default_factory=lambda: list(DEFAULT_EXCLUDE_FILTER))
+    no_exclude: bool = DEFAULT_NO_EXCLUDE
+    no_ignore: bool = DEFAULT_NO_IGNORE
+    tag: Literal["xml", "md"] = DEFAULT_TAG
+
+
+def parse_common_args(argv: list[str] | None = None) -> Context:
+    from prin.filters import resolve_extensions
+
     epilog = textwrap.dedent(
         f"""
         DEFAULT MATCH CRITERIA
@@ -145,20 +161,33 @@ def parse_common_args(
     )
 
     args = parser.parse_args(argv)
-    return parser, args
+    return Context(
+        paths=list(args.paths),
+        include_tests=bool(args.include_tests),
+        include_lock=bool(args.include_lock),
+        include_binary=bool(args.include_binary),
+        no_docs=bool(args.no_docs),
+        include_empty=bool(args.include_empty),
+        only_headers=bool(args.only_headers),
+        extension=list(args.extension or []),
+        exclude=list(args.exclude or []),
+        no_exclude=bool(args.no_exclude),
+        no_ignore=bool(args.no_ignore),
+        tag=args.tag,
+    )
 
 
-def derive_filters_and_print_flags(args) -> tuple[list[str], list, bool, bool]:
+def derive_filters_and_print_flags(ctx: Context) -> tuple[list[str], list, bool, bool]:
     from .filters import resolve_exclusions, resolve_extensions  # shared helpers
 
-    extensions = resolve_extensions(custom_extensions=args.extension, no_docs=args.no_docs)
+    extensions = resolve_extensions(custom_extensions=ctx.extension, no_docs=ctx.no_docs)
     exclusions = resolve_exclusions(
-        no_exclude=args.no_exclude,
-        custom_excludes=args.exclude,
-        include_tests=args.include_tests,
-        include_lock=args.include_lock,
-        include_binary=args.include_binary,
-        no_ignore=args.no_ignore,
-        paths=args.paths,
+        no_exclude=ctx.no_exclude,
+        custom_excludes=ctx.exclude,
+        include_tests=ctx.include_tests,
+        include_lock=ctx.include_lock,
+        include_binary=ctx.include_binary,
+        no_ignore=ctx.no_ignore,
+        paths=ctx.paths,
     )
-    return extensions, exclusions, bool(args.include_empty), bool(args.only_headers)
+    return extensions, exclusions, bool(ctx.include_empty), bool(ctx.only_headers)

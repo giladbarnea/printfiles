@@ -4,7 +4,7 @@ import sys
 
 from .adapters.filesystem import FileSystemSource
 from .adapters.github import GitHubRepoSource
-from .cli_common import derive_filters_and_print_flags, parse_common_args
+from .cli_common import Context, derive_filters_and_print_flags, parse_common_args
 from .core import DepthFirstPrinter, StdoutWriter, Writer
 from .formatters import MarkdownFormatter, XmlFormatter
 from .util import extract_in_repo_subpath, is_github_url
@@ -13,16 +13,16 @@ from .util import extract_in_repo_subpath, is_github_url
 def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None:
     if argv is None:
         argv = sys.argv[1:]
-    _parser, args = parse_common_args(argv)
-    extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
+    ctx: Context = parse_common_args(argv)
+    extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(ctx)
 
-    formatter = XmlFormatter() if args.tag == "xml" else MarkdownFormatter()
+    formatter = XmlFormatter() if ctx.tag == "xml" else MarkdownFormatter()
     out_writer = writer or StdoutWriter()
 
     # Split positional inputs into local paths and GitHub URLs
     local_paths: list[str] = []
     repo_urls: list[str] = []
-    for tok in args.paths:
+    for tok in ctx.paths:
         if is_github_url(tok):
             repo_urls.append(tok)
         else:
@@ -46,11 +46,11 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
 
         # For remote repos, do not honor local gitignore by design
         repo_exclusions = _resolve_exclusions(
-            no_exclude=args.no_exclude,
-            custom_excludes=args.exclude,
-            include_tests=args.include_tests,
-            include_lock=args.include_lock,
-            include_binary=args.include_binary,
+            no_exclude=ctx.no_exclude,
+            custom_excludes=ctx.exclude,
+            include_tests=ctx.include_tests,
+            include_lock=ctx.include_lock,
+            include_binary=ctx.include_binary,
             no_ignore=True,
             paths=[""],
         )

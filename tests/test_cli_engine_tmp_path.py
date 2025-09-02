@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from prin.adapters.filesystem import FileSystemSource
-from prin.cli_common import derive_filters_and_print_flags, parse_common_args
+from prin.cli_common import Context, derive_filters_and_print_flags, parse_common_args
 from prin.core import DepthFirstPrinter, StringWriter
 from prin.formatters import XmlFormatter
 
@@ -98,8 +98,8 @@ def test_cli_engine_isolation(tmp_path):
 
 
 def test_derive_filters_defaults(tmp_path):
-    _parser, args = parse_common_args([str(tmp_path)])
-    extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(args)
+    ctx: Context = parse_common_args([str(tmp_path)])
+    extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(ctx)
     # Must include common defaults
     assert ".py" in extensions
     assert ".md" in extensions
