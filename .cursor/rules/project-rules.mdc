@@ -1,0 +1,7 @@
+---
+description: Project rules for the prin project
+globs:
+alwaysApply: true
+---
+
+Always read @AGENTS.md and @README.md when starting a new task.
