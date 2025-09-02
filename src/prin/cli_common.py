@@ -4,6 +4,19 @@ import argparse
 import textwrap
 from typing import Tuple
 
+from prin.defaults import (
+    DEFAULT_EXCLUSIONS,
+    DEFAULT_EXTENSIONS_FILTER,
+    DEFAULT_INCLUDE_BINARY,
+    DEFAULT_INCLUDE_EMPTY,
+    DEFAULT_INCLUDE_LOCK,
+    DEFAULT_INCLUDE_TESTS,
+    DEFAULT_NO_DOCS,
+    DEFAULT_ONLY_HEADERS,
+    DEFAULT_RUN_PATH,
+)
+from prin.types import _describe_predicate
+
 # Intentionally avoid importing from print_files at module import time to
 # prevent circular imports. We'll import lazily inside functions.
 
@@ -40,7 +53,7 @@ def parse_common_args(
         type=str,
         nargs="*",
         help="Path(s) or roots. Defaults to current directory if none specified.",
-        default=["."],
+        default=[DEFAULT_RUN_PATH],
     )
 
     # Uppercase short flags are boolean "include" flags.
@@ -49,12 +62,14 @@ def parse_common_args(
         "--include-tests",
         action="store_true",
         help="Include `test` and `tests` directories and spec.ts files.",
+        default=DEFAULT_INCLUDE_TESTS,
     )
     parser.add_argument(
         "-K",
         "--include-lock",
         action="store_true",
         help="Include lock files (e.g. package-lock.json, poetry.lock, Cargo.lock).",
+        default=DEFAULT_INCLUDE_LOCK,
     )
     parser.add_argument(
         "-a",
@@ -64,34 +79,36 @@ def parse_common_args(
         action="store_true",
         dest="include_binary",
         help="Include binary files (e.g. *.pyc, *.jpg, *.zip, *.pdf).",
+        default=DEFAULT_INCLUDE_BINARY,
     )
     parser.add_argument(
         "-d",
         "--no-docs",
         action="store_true",
         help="Exclude `.md`, `.mdx` and `.rst` files. Has no effect if -e,--extension is specified.",
+        default=DEFAULT_NO_DOCS,
     )
     parser.add_argument(
         "-M",
         "--include-empty",
         action="store_true",
         help="Include empty files and files that only contain imports and __all__=... expressions.",
+        default=DEFAULT_INCLUDE_EMPTY,
     )
     parser.add_argument(
-        "-l", "--only-headers", action="store_true", help="Print only the file paths."
+        "-l",
+        "--only-headers",
+        action="store_true",
+        help="Print only the file paths.",
+        default=DEFAULT_ONLY_HEADERS,
     )
     parser.add_argument(
         "-e",
         "--extension",
         type=str,
-        default=[],
+        default=DEFAULT_EXTENSIONS_FILTER,
         action="append",
         help="Only include files with the given extension (repeatable).",
-    )
-    # Lazy import remaining helpers for help text
-    from .print_files import (
-        DEFAULT_EXCLUSIONS,  # type: ignore
-        _describe_predicate,  # type: ignore
     )
 
     parser.add_argument(

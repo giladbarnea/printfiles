@@ -1,6 +1,5 @@
 #!/usr/bin/env python3.12
 import ast
-import inspect
 import os
 from collections.abc import Generator
 from fnmatch import fnmatch
@@ -17,32 +16,15 @@ from typing import Any, TypeIs
 
 from typeguard import typechecked
 
-from prin.defaults import DEFAULT_EXCLUSIONS
+from prin.defaults import (
+    DEFAULT_BINARY_EXCLUSIONS,
+    DEFAULT_DOC_EXTENSIONS,
+    DEFAULT_EXCLUSIONS,
+    DEFAULT_LOCK_EXCLUSIONS,
+    DEFAULT_SUPPORTED_EXTENSIONS,
+    DEFAULT_TEST_EXCLUSIONS,
+)
 from prin.types import TExclusion, TExtension, TGlob, _is_extension, _is_glob
-
-# sudo fd -H -I '.*' -t f / --format "{/}" | awk -F. '/\./ && index($0,".")!=1 {ext=tolower($NF); if (length(ext) <= 10 && ext ~ /[a-z]/ && ext ~ /^[a-z0-9]+$/) print ext}' > /tmp/exts.txt  # For all file names which have a name and an extension, write to file lowercased extensions which are alphanumeric, <= 10 characters long, and have at least one letter
-# rg --type-list | py.eval "[print(extension) for line in lines for ext in line.split(': ')[1].split(', ') if (extension:=ext.removeprefix('*.').removeprefix('.*').removeprefix('.').removeprefix('*').lower()).isalnum()]" --readlines >> /tmp/exts.txt
-# sort -u -o /tmp/exts.txt /tmp/exts.txt
-SUPPORTED_EXTENSIONS = []
-
-
-@typechecked
-def _describe_predicate(pred: TExclusion) -> str:
-    if isinstance(pred, str):
-        return pred
-
-    pred_closure_vars = inspect.getclosurevars(pred)
-    if pred_closure_vars.unbound == {"startswith"}:
-        startswith = pred.__code__.co_consts[1]
-        return f"paths starting with {startswith!r}"
-    if pred_closure_vars.unbound == {"endswith"}:
-        endswith = pred.__code__.co_consts[1]
-        return f"paths ending with {endswith!r}"
-    if " in " in inspect.getsource(pred):
-        contains = pred.__code__.co_consts[1]
-        return f"paths containing {contains!r}"
-    msg = f"Unknown predicate: {pred}"
-    raise ValueError(msg)
 
 
 @typechecked
@@ -207,7 +189,7 @@ def is_excluded(entry: os.DirEntry[str] | str | TGlob | Path, *, exclude: list[T
 
 @typechecked
 def is_empty(entry: os.DirEntry[str] | Path) -> bool:
-    """Uses ast and returns True if the file only contains import statements, __all__=... assignment, and/or docstrings."""
+    """Uses ast and returns True if the file only contains import statements, __all__=... assignment, and/or docstrings. Bug: doesn't handle comments (and shebang?)"""
     if isinstance(entry, os.DirEntry):
         if entry.is_dir():
             return False
@@ -253,95 +235,6 @@ def is_empty(entry: os.DirEntry[str] | Path) -> bool:
         else:
             return False
     return True
-
-
-def get_default_extensions() -> list[TExclusion]:
-    return [
-        ".py",
-        ".ts",
-        ".tsx",
-        ".json",
-        ".json*",
-        ".html",
-        ".ini",
-        ".toml",
-        ".yaml",
-        ".yml",
-        ".sh",
-        ".zsh",
-    ]
-
-
-def get_doc_extensions() -> list[str]:
-    return [".md", ".rst", ".mdx"]
-
-
-def get_test_exclusions() -> list[TExclusion]:
-    return ["tests", "test", "spec.ts", "spec.ts*", "test.ts", "test.ts*"]
-
-
-def get_lock_exclusions() -> list[TExclusion]:
-    return [
-        # Python
-        "uv.lock",
-        "poetry.lock",
-        "Pipfile.lock",
-        # JavaScript/Node
-        "package-lock.json",
-        "yarn.lock",
-        "pnpm-lock.yaml",
-        # Other languages
-        "Gemfile.lock",
-        "composer.lock",
-        "Cargo.lock",
-        "go.sum",
-        "mix.lock",
-    ]
-
-
-def get_binary_exclusions() -> list[TExclusion]:
-    return [
-        # Binary files
-        "*.pyc",
-        "*.pyo",
-        "*.pyd",
-        "*.exe",
-        "*.dll",
-        "*.app",
-        "*.deb",
-        "*.rpm",
-        # Archives
-        "*.zip",
-        "*.tar",
-        "*.gz",
-        "*.bz2",
-        "*.xz",
-        "*.7z",
-        "*.rar",
-        "*.jar",
-        "*.war",
-        "*.ear",
-        # Media files
-        "*.png",
-        "*.jpg",
-        "*.jpeg",
-        "*.gif",
-        "*.bmp",
-        "*.ico",
-        "*.svg",
-        "*.mp3",
-        "*.mp4",
-        "*.avi",
-        "*.mov",
-        "*.wav",
-        "*.pdf",  # TODO: Remove this when we support PDFs
-        # Database and data files
-        "*.db",
-        "*.sqlite",
-        "*.sqlite3",
-        "*.dat",
-        "*.bin",
-    ]
 
 
 @typechecked
@@ -394,7 +287,9 @@ def resolve_exclusions(
     no_ignore: bool,
     paths: list[str],
 ) -> list[TExclusion]:
-    """Resolve final exclusion list based on command line arguments."""
+    """
+    Resolve final exclusion list based on command line arguments.
+    Smell: generic logic that should be moved somewhere common."""
     if no_exclude:
         return []
 
@@ -402,13 +297,13 @@ def resolve_exclusions(
     exclusions.extend(custom_excludes)
 
     if not include_tests:
-        exclusions.extend(get_test_exclusions())
+        exclusions.extend(DEFAULT_TEST_EXCLUSIONS)
 
     if not include_lock:
-        exclusions.extend(get_lock_exclusions())
+        exclusions.extend(DEFAULT_LOCK_EXCLUSIONS)
 
     if not include_binary:
-        exclusions.extend(get_binary_exclusions())
+        exclusions.extend(DEFAULT_BINARY_EXCLUSIONS)
 
     if not no_ignore:
         exclusions.extend(get_gitignore_exclusions(paths))
@@ -425,9 +320,9 @@ def resolve_extensions(
     if custom_extensions:
         extensions = custom_extensions
     else:
-        extensions = get_default_extensions()
+        extensions = DEFAULT_SUPPORTED_EXTENSIONS
         if not no_docs:
-            extensions.extend(get_doc_extensions())
+            extensions.extend(DEFAULT_DOC_EXTENSIONS)
 
     return extensions
 
