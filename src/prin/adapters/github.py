@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import os
 import time
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Dict, Iterable, Optional
@@ -34,20 +35,17 @@ def _parse_owner_repo(url: str) -> tuple[str, str]:
 
 
 def _parse_rate_limit_wait_seconds(resp: requests.Response) -> Optional[int]:
+    
     ra = resp.headers.get("Retry-After")
     if ra:
-        try:
+        with suppress(Exception):
             return int(float(ra))
-        except Exception:
-            pass
     reset = resp.headers.get("X-RateLimit-Reset")
     if reset:
-        try:
+        with suppress(Exception):
             reset_ts = int(float(reset))
             now = int(time.time())
             return max(0, reset_ts - now)
-        except Exception:
-            pass
     return None
 
 
@@ -132,10 +130,8 @@ class GitHubRepoSource(SourceAdapter):
         )
         info = r.json()
         if info.get("encoding") == "base64" and info.get("content"):
-            try:
+            with suppress(Exception):
                 return base64.b64decode(info["content"], validate=False)
-            except Exception:
-                pass
         dl = info.get("download_url")
         if dl:
             r2 = self._session.get(dl, stream=True)

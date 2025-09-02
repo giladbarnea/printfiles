@@ -136,7 +136,7 @@ def print_single_file(
         relative_path = str(file_path)
 
     try:
-        with file_path.open("r") as f:
+        with file_path.open("r", encoding="utf-8") as f:
             file_content = f.read().strip()
     except UnicodeDecodeError:
         with file_path.open("rb") as f:
@@ -279,7 +279,7 @@ def is_empty(entry: os.DirEntry[str] | Path) -> bool:
         path = entry
 
     try:
-        with Path(path).open("r") as file:
+        with Path(path).open("r", encoding="utf-8") as file:
             content = file.read()
     except UnicodeDecodeError:
         return False
@@ -410,7 +410,7 @@ def read_gitignore_file(gitignore_path: Path) -> list[TExclusion]:
     """Read a gitignore-like file and return list of exclusion patterns."""
     exclusions = []
     try:
-        with gitignore_path.open("r") as f:
+        with gitignore_path.open("r", encoding="utf-8") as f:
             for line in f:
                 stripped = line.strip()
                 if stripped and not stripped.startswith("#"):

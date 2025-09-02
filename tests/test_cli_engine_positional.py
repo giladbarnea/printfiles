@@ -9,7 +9,7 @@ from prin.formatters import XmlFormatter
 
 def _write(p: Path, content: str) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(content)
+    p.write_text(content, encoding="utf-8")
 
 
 def _touch(p: Path) -> None:

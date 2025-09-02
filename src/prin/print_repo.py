@@ -11,7 +11,8 @@ from .formatters import MarkdownFormatter, XmlFormatter
 
 
 def _extract_in_repo_subpath(url: str) -> str:
-    """Return the path inside the repo from a GitHub URL.
+    """
+    Return the path inside the repo from a GitHub URL.
 
     Examples we accept (all equivalent w.r.t. subpath extraction):
     - https://github.com/<owner>/<repo>/blob/<branch>/dir/file
@@ -103,7 +104,8 @@ def render_repo(
     extensions: list[str] | None = None,
     exclude: list | None = None,
 ) -> str:
-    """Render a GitHub repo (optionally a subpath) to a single string.
+    """
+    Render a GitHub repo (optionally a subpath) to a single string.
 
     Mirrors CLI defaults and semantics used by `main()`, but returns the
     full output as a string so tests can import and assert without custom

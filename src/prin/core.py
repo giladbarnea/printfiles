@@ -38,7 +38,8 @@ class Formatter(Protocol):
 
 
 def is_text_semantically_empty(text: str) -> bool:
-    """Return True if text contains only imports, __all__=..., or docstrings.
+    """
+    Return True if text contains only imports, __all__=..., or docstrings.
 
     Mirrors the behavior used by the filesystem implementation.
     """
@@ -94,17 +95,19 @@ def _decode_text(blob: bytes) -> str:
         return blob.decode("latin-1")
 
 
-class StdoutWriter:
+class StdoutWriter(Writer):
     def write(self, text: str) -> None:
         sys.stdout.write(text)
 
 
-class StringWriter:
-    """Collects written text into an internal buffer for tests and callers.
+class StringWriter(Writer):
+    """
+    Collects written text into an internal buffer for tests and callers.
 
     Provides a lightweight Writer implementation that accumulates text and
     exposes it via the `text()` accessor.
     """
+
     def __init__(self) -> None:
         self._parts: list[str] = []
 
