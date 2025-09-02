@@ -143,5 +143,12 @@ DEFAULT_NO_DOCS = False
 DEFAULT_INCLUDE_EMPTY = False
 DEFAULT_ONLY_HEADERS = False
 DEFAULT_EXTENSIONS_FILTER = []
+DEFAULT_EXCLUDE_FILTER = []
+DEFAULT_NO_EXCLUDE = False
+DEFAULT_NO_IGNORE = False
+
+# Output format tag defaults
+DEFAULT_TAG = "xml"
+DEFAULT_TAG_CHOICES = ["xml", "md"]
 
 # endregion ---[ Default CLI Options ]---

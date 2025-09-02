@@ -5,6 +5,7 @@ import textwrap
 from typing import Tuple
 
 from prin.defaults import (
+    DEFAULT_EXCLUDE_FILTER,
     DEFAULT_EXCLUSIONS,
     DEFAULT_EXTENSIONS_FILTER,
     DEFAULT_INCLUDE_BINARY,
@@ -12,8 +13,12 @@ from prin.defaults import (
     DEFAULT_INCLUDE_LOCK,
     DEFAULT_INCLUDE_TESTS,
     DEFAULT_NO_DOCS,
+    DEFAULT_NO_EXCLUDE,
+    DEFAULT_NO_IGNORE,
     DEFAULT_ONLY_HEADERS,
     DEFAULT_RUN_PATH,
+    DEFAULT_TAG,
+    DEFAULT_TAG_CHOICES,
 )
 from prin.types import _describe_predicate
 
@@ -119,20 +124,27 @@ def parse_common_args(
         help="Exclude files or directories by shell-style glob or regex (repeatable). By default, excludes "
         + ", ".join(map(_describe_predicate, DEFAULT_EXCLUSIONS))
         + ", and any files in .gitignore, .git/info/exclude, and ~/.config/git/ignore.",
-        default=[],
+        default=DEFAULT_EXCLUDE_FILTER,
         action="append",
     )
     parser.add_argument(
-        "--no-exclude", action="store_true", help="Disable all exclusions (overrides --exclude)."
+        "--no-exclude",
+        action="store_true",
+        help="Disable all exclusions (overrides --exclude).",
+        default=DEFAULT_NO_EXCLUDE,
     )
     parser.add_argument(
-        "-I", "--no-ignore", action="store_true", help="Disable gitignore file processing."
+        "-I",
+        "--no-ignore",
+        action="store_true",
+        help="Disable gitignore file processing.",
+        default=DEFAULT_NO_IGNORE,
     )
     parser.add_argument(
         "--tag",
         type=str,
-        choices=["xml", "md"],
-        default="xml",
+        choices=DEFAULT_TAG_CHOICES,
+        default=DEFAULT_TAG,
         help="Output format tag: 'xml' or 'md'.",
     )
 
