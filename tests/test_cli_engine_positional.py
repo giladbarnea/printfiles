@@ -6,16 +6,7 @@ from prin.adapters.filesystem import FileSystemSource
 from prin.core import DepthFirstPrinter, StringWriter
 from prin.defaults import DEFAULT_BINARY_EXCLUSIONS, DEFAULT_EXCLUSIONS
 from prin.formatters import XmlFormatter
-
-
-def _write(p: Path, content: str) -> None:
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(content, encoding="utf-8")
-
-
-def _touch(p: Path) -> None:
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.touch()
+from tests.utils import touch_file as _touch, write_text_file as _write
 
 
 def _run(src: FileSystemSource, roots: list[str]) -> str:
