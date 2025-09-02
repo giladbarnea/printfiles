@@ -95,6 +95,14 @@ def _decode_text(blob: bytes) -> str:
         return blob.decode("latin-1")
 
 
+def is_blob_semantically_empty(blob: bytes) -> bool:
+    """Return True if the provided blob represents a semantically empty text file."""
+    if not _is_text_bytes(blob):
+        return False
+    text = _decode_text(blob)
+    return is_text_semantically_empty(text)
+
+
 class StdoutWriter(Writer):
     def write(self, text: str) -> None:
         sys.stdout.write(text)

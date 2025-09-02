@@ -48,6 +48,14 @@ class FileSystemSource(SourceAdapter):
             return b""
 
     def is_empty(self, file_path: PurePosixPath) -> bool:
-        from ..print_files import is_empty as fs_is_empty  # reuse reference logic
+        # Read bytes and use shared semantic emptiness check
+        p = Path(str(file_path))
+        if not p.is_file():
+            return False
+        try:
+            blob = p.read_bytes()
+        except Exception:
+            return False
+        from ..core import is_blob_semantically_empty
 
-        return fs_is_empty(Path(str(file_path)))
+        return is_blob_semantically_empty(blob)

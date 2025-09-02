@@ -10,7 +10,7 @@ from typing import Dict, Iterable, Optional
 
 import requests
 
-from ..core import Entry, NodeKind, SourceAdapter, _decode_text, _is_text_bytes
+from ..core import Entry, NodeKind, SourceAdapter
 
 API_BASE = "https://api.github.com"
 MAX_WAIT_SECONDS = 180
@@ -153,11 +153,8 @@ class GitHubRepoSource(SourceAdapter):
     def is_empty(self, file_path: PurePosixPath) -> bool:
         # We need content to decide emptiness; download and apply the shared check.
         blob = self.read_file_bytes(file_path)
-        if not _is_text_bytes(blob):
-            return False
-        text = _decode_text(blob)
-        from ..core import is_text_semantically_empty
+        from ..core import is_blob_semantically_empty
 
-        return is_text_semantically_empty(text)
+        return is_blob_semantically_empty(blob)
 
     # no __post_init__ needed; ref fetched during __init__
