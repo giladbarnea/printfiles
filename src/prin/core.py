@@ -126,7 +126,7 @@ class StringWriter(Writer):
         return "".join(self._parts)
 
 
-class PrintBudget:
+class FileBudget:
     """
     Global print-budget shared across sources. Each printed file consumes 1 unit.
     When exhausted, traversal and printing should stop as early as possible.
@@ -172,7 +172,7 @@ class DepthFirstPrinter:
         self._pf_is_excluded: Callable[[object, list], bool] = _filters.is_excluded
         self._pf_is_glob: Callable[[object], bool] = _filters.is_glob
 
-    def run(self, roots: list[str], writer: Writer, budget: "PrintBudget | None" = None) -> None:
+    def run(self, roots: list[str], writer: Writer, budget: "FileBudget | None" = None) -> None:
         for root_spec in roots or ["."]:
             if budget is not None and budget.spent():
                 return
@@ -230,7 +230,7 @@ class DepthFirstPrinter:
         *,
         base: PurePosixPath,
         force: bool = False,
-        budget: "PrintBudget | None" = None,
+        budget: "FileBudget | None" = None,
     ) -> None:
         # Avoid duplicate prints when a file is both an explicit root and encountered during traversal
         key = str(entry.path)

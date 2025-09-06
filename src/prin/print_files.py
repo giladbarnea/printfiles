@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .adapters.filesystem import FileSystemSource
 from .cli_common import Context, derive_filters_and_print_flags, parse_common_args
-from .core import DepthFirstPrinter, PrintBudget, StdoutWriter, Writer
+from .core import DepthFirstPrinter, FileBudget, StdoutWriter, Writer
 from .formatters import MarkdownFormatter, XmlFormatter
 
 
@@ -20,7 +20,7 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
         exclude=exclusions,
     )
     out_writer = writer or StdoutWriter()
-    budget = PrintBudget(ctx.max_files)
+    budget = FileBudget(ctx.max_files)
     printer.run(ctx.paths, out_writer, budget=budget)
 
 
