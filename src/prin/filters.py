@@ -105,14 +105,11 @@ def resolve_extensions(
     no_docs: bool,
 ) -> list[str]:
     """Resolve final extension list based on command line arguments."""
+    # New default behavior: no default inclusions. When no custom extensions
+    # are provided, include all files by leaving the extensions list empty.
     if custom_extensions:
-        extensions = custom_extensions
-    else:
-        extensions = DEFAULT_SUPPORTED_EXTENSIONS.copy()
-        if not no_docs:
-            extensions.extend(DEFAULT_DOC_EXTENSIONS)
-
-    return extensions
+        return custom_extensions
+    return []
 
 
 @typechecked
