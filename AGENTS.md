@@ -1,6 +1,6 @@
 # Agents.md
 
-Read all Markdown files in the root dir of this project before starting a new task.
+Read and understand the Markdown files of the project before starting a task, and whatever you do, try to align with the existing design philosophy (What knowledge each component holds, what knowledge it intentionally does not hold, responsibility and separation, what should be reused, and so on.)
 
 ### Architecture
 
