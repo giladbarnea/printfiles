@@ -13,6 +13,7 @@ from .defaults import (
     DEFAULT_LOCK_EXCLUSIONS,
     DEFAULT_SUPPORTED_EXTENSIONS,
     DEFAULT_TEST_EXCLUSIONS,
+    EXTENSIONLESS_SENTINEL,
 )
 from .types import TExclusion, TExtension, TGlob, _is_extension, _is_glob
 
@@ -111,6 +112,8 @@ def resolve_extensions(
         extensions = DEFAULT_SUPPORTED_EXTENSIONS.copy()
         if not no_docs:
             extensions.extend(DEFAULT_DOC_EXTENSIONS)
+        # Include extensionless files by default
+        extensions.append(EXTENSIONLESS_SENTINEL)
 
     return extensions
 

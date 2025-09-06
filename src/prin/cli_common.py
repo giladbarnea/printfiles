@@ -50,7 +50,7 @@ def parse_common_args(argv: list[str] | None = None) -> Context:
     epilog = textwrap.dedent(
         f"""
         DEFAULT MATCH CRITERIA
-        When -e,--extension is unspecified, the following file extensions are matched: {", ".join(resolve_extensions(custom_extensions=[], no_docs=False))}.
+        When -e,--extension is unspecified, common source and documentation extensions are matched, plus extensionless files like LICENSE and Dockerfile.
 
         NOTE ABOUT EXCLUSIONS
         Exclusions match rather eagerly, because each specified exclusion is handled like a substring match. For example, 'o/b' matches 'foo/bar/baz'.

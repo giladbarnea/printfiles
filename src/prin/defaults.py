@@ -61,6 +61,12 @@ DEFAULT_SUPPORTED_EXTENSIONS: list[str] = [
 DEFAULT_DOC_EXTENSIONS: list[str] = [".md", ".rst", ".mdx"]
 
 
+# When using default extensions (no custom -e provided), we also include
+# extensionless files like LICENSE, Makefile, Dockerfile by way of a sentinel
+# that the core engine recognizes.
+EXTENSIONLESS_SENTINEL: str = "<EXTENSIONLESS>"
+
+
 DEFAULT_TEST_EXCLUSIONS: list[TExclusion] = [
     "tests",
     "test",
