@@ -41,6 +41,7 @@ class Context:
     no_exclude: bool = DEFAULT_NO_EXCLUDE
     no_ignore: bool = DEFAULT_NO_IGNORE
     tag: Literal["xml", "md"] = DEFAULT_TAG
+    max_files: int | None = None
 
 
 def parse_common_args(argv: list[str] | None = None) -> Context:
@@ -160,6 +161,14 @@ def parse_common_args(argv: list[str] | None = None) -> Context:
         help="Output format tag: 'xml' or 'md'.",
     )
 
+    parser.add_argument(
+        "--max-files",
+        type=int,
+        dest="max_files",
+        default=None,
+        help="Maximum number of files to print across all inputs.",
+    )
+
     args = parser.parse_args(argv)
     return Context(
         paths=list(args.paths),
@@ -174,6 +183,7 @@ def parse_common_args(argv: list[str] | None = None) -> Context:
         no_exclude=bool(args.no_exclude),
         no_ignore=bool(args.no_ignore),
         tag=args.tag,
+        max_files=args.max_files,
     )
 
 
