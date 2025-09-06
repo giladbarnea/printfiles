@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .adapters.github import GitHubRepoSource
 from .cli_common import Context, derive_filters_and_print_flags, parse_common_args
-from .core import DepthFirstPrinter, StdoutWriter, Writer
+from .core import DepthFirstPrinter, PrintBudget, StdoutWriter, Writer
 from .defaults import DEFAULT_RUN_PATH
 from .formatters import MarkdownFormatter, XmlFormatter
 from .util import extract_in_repo_subpath, is_github_url
@@ -63,7 +63,8 @@ def main(
     )
 
     out_writer = writer or StdoutWriter()
-    printer.run(ctx.paths, out_writer)
+    budget = PrintBudget(ctx.max_files)
+    printer.run(ctx.paths, out_writer, budget=budget)
 
 
 def matches(argv: list[str]) -> bool:

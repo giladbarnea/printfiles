@@ -5,7 +5,7 @@ import sys
 from .adapters.filesystem import FileSystemSource
 from .adapters.github import GitHubRepoSource
 from .cli_common import Context, derive_filters_and_print_flags, parse_common_args
-from .core import DepthFirstPrinter, StdoutWriter, Writer
+from .core import DepthFirstPrinter, PrintBudget, StdoutWriter, Writer
 from .formatters import MarkdownFormatter, XmlFormatter
 from .util import extract_in_repo_subpath, is_github_url
 
@@ -30,6 +30,9 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
             if tok != "":
                 local_paths.append(tok)
 
+    # Global print budget shared across sources
+    budget = PrintBudget(ctx.max_files)
+
     # Filesystem chunk (if any)
     if local_paths:
         fs_printer = DepthFirstPrinter(
@@ -40,10 +43,10 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
             extensions=extensions,
             exclude=exclusions,
         )
-        fs_printer.run(local_paths, out_writer)
+        fs_printer.run(local_paths, out_writer, budget=budget)
 
     # GitHub repos (each rendered independently to the same writer)
-    if repo_urls:
+    if repo_urls and not (budget and budget.spent()):
         from .filters import resolve_exclusions as _resolve_exclusions
 
         # For remote repos, do not honor local gitignore by design
@@ -57,6 +60,8 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
             paths=[""],
         )
         for url in repo_urls:
+            if budget and budget.spent():
+                break
             roots: list[str] = []
             derived = extract_in_repo_subpath(url).strip("/")
             if derived:
@@ -71,7 +76,7 @@ def main(*, argv: list[str] | None = None, writer: Writer | None = None) -> None
                 extensions=extensions,
                 exclude=repo_exclusions,
             )
-            gh_printer.run(roots, out_writer)
+            gh_printer.run(roots, out_writer, budget=budget)
 
 
 if __name__ == "__main__":

@@ -126,6 +126,27 @@ class StringWriter(Writer):
         return "".join(self._parts)
 
 
+class PrintBudget:
+    """
+    Global print-budget shared across sources. Each printed file consumes 1 unit.
+    When exhausted, traversal and printing should stop as early as possible.
+    """
+
+    def __init__(self, max_files: int | None) -> None:
+        self._remaining = max_files if (isinstance(max_files, int) and max_files > 0) else None
+
+    def spent(self) -> bool:
+        return self._remaining == 0
+
+    def available(self) -> bool:
+        return self._remaining is None or self._remaining > 0
+
+    def consume(self) -> None:
+        if self._remaining is None:
+            return
+        if self._remaining > 0:
+            self._remaining -= 1
+
 class DepthFirstPrinter:
     def __init__(
         self,
@@ -151,18 +172,22 @@ class DepthFirstPrinter:
         self._pf_is_excluded: Callable[[object, list], bool] = _filters.is_excluded
         self._pf_is_glob: Callable[[object], bool] = _filters.is_glob
 
-    def run(self, roots: list[str], writer: Writer) -> None:
+    def run(self, roots: list[str], writer: Writer, budget: "PrintBudget | None" = None) -> None:
         for root_spec in roots or ["."]:
+            if budget is not None and budget.spent():
+                return
             root = self.source.resolve_root(root_spec)
             stack: list[PurePosixPath] = [root]
             while stack:
+                if budget is not None and budget.spent():
+                    return
                 current = stack.pop()
                 try:
                     entries = list(self.source.list_dir(current))
                 except NotADirectoryError:
                     # Treat the current path as a file
                     file_entry = Entry(path=current, name=current.name, kind=NodeKind.FILE)
-                    self._handle_file(file_entry, writer, base=root, force=True)
+                    self._handle_file(file_entry, writer, base=root, force=True, budget=budget)
                     continue
                 except FileNotFoundError:
                     # Skip missing paths
@@ -178,7 +203,7 @@ class DepthFirstPrinter:
                         stack.append(entry.path)
 
                 for entry in files:
-                    self._handle_file(entry, writer, base=root)
+                    self._handle_file(entry, writer, base=root, budget=budget)
 
     def _excluded(self, entry: Entry) -> bool:
         # The reference implementation accepts strings/paths/globs/callables
@@ -199,11 +224,20 @@ class DepthFirstPrinter:
         return False
 
     def _handle_file(
-        self, entry: Entry, writer: Writer, *, base: PurePosixPath, force: bool = False
+        self,
+        entry: Entry,
+        writer: Writer,
+        *,
+        base: PurePosixPath,
+        force: bool = False,
+        budget: "PrintBudget | None" = None,
     ) -> None:
         # Avoid duplicate prints when a file is both an explicit root and encountered during traversal
         key = str(entry.path)
         if key in self._printed_paths:
+            return
+
+        if budget is not None and budget.spent():
             return
 
         if not force:
@@ -217,6 +251,8 @@ class DepthFirstPrinter:
         path_str = self._display_path(entry.path, base)
         if self.only_headers:
             writer.write(self.formatter.header(path_str))
+            if budget is not None:
+                budget.consume()
             self._printed_paths.add(key)
             return
 
@@ -226,6 +262,8 @@ class DepthFirstPrinter:
             writer.write(self.formatter.body(path_str, text))
         else:
             writer.write(self.formatter.binary(path_str))
+        if budget is not None:
+            budget.consume()
         self._printed_paths.add(key)
 
     def _display_path(self, path: PurePosixPath, base: PurePosixPath) -> str:
