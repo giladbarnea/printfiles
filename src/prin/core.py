@@ -219,7 +219,13 @@ class DepthFirstPrinter:
                 if fnmatch(filename, pattern):
                     return True
             else:
-                if filename.endswith("." + pattern.removeprefix(".")):
+                # Special-case sentinel for extensionless files
+                from .defaults import EXTENSIONLESS_SENTINEL as _EXT
+
+                if pattern == _EXT:
+                    if "." not in filename:
+                        return True
+                elif filename.endswith("." + pattern.removeprefix(".")):
                     return True
         return False
 
