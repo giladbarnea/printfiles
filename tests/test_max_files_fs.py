@@ -28,7 +28,7 @@ def test_max_files_limits_printed_files_all_included(tmp_path: Path):
     _write(tmp_path / "dir" / "sub" / "e.py", "print('e')\n")
 
     buf = StringWriter()
-    prin_main(argv=["--max-files", "4", str(tmp_path)], writer=buf)
+    prin_main(argv=["--include-tests", "--max-files", "4", str(tmp_path)], writer=buf)
     out = buf.text()
     assert _count_opening_xml_tags(out) == 4
 
@@ -42,7 +42,7 @@ def test_max_files_skips_non_matching_and_still_prints_four(tmp_path: Path):
     _write(tmp_path / "dir" / "sub" / "d.py", "print('d')\n")
 
     buf = StringWriter()
-    prin_main(argv=["--max-files", "4", str(tmp_path)], writer=buf)
+    prin_main(argv=["--include-tests", "--max-files", "4", str(tmp_path)], writer=buf)
     out = buf.text()
     assert _count_opening_xml_tags(out) == 4
 
