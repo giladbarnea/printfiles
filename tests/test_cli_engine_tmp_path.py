@@ -100,9 +100,8 @@ def test_cli_engine_isolation(tmp_path):
 def test_derive_filters_defaults(tmp_path):
     ctx: Context = parse_common_args([str(tmp_path)])
     extensions, exclusions, include_empty, only_headers = derive_filters_and_print_flags(ctx)
-    # Must include common defaults
-    assert ".py" in extensions
-    assert ".md" in extensions
+    # No default inclusions: extensions should be empty by default
+    assert extensions == []
     # Defaults should not set only_headers or include_empty
     assert include_empty is False
     assert only_headers is False
